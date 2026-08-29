@@ -37,8 +37,8 @@ export const todoTokens = {
     text: '#e2e8f0',
     textMuted: '#94a3b8',
     textFaint: '#64748b',
-    accent: '#7c6ba0',
-    accentBright: '#a99ad2',
+    accent: '#3b82f6',
+    accentBright: '#7db2ff',
     success: '#4ade80',
     warning: '#fbbf24',
     danger: '#f87171',
@@ -721,8 +721,8 @@ export function TodoStyleGuide() {
           value={accent}
           onChange={(event) => setAccent(event.target.value)}
           options={[
-            { value: 'violet', label: 'Violet accent' },
-            { value: 'indigo', label: 'Indigo accent' },
+            { value: 'violet', label: 'Azure accent' },
+            { value: 'indigo', label: 'Cobalt accent' },
           ]}
         />
       </header>

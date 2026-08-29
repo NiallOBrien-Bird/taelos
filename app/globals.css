@@ -30,7 +30,7 @@ button {
   -webkit-tap-highlight-color: transparent;
 }
 ::selection {
-  background: rgba(169, 154, 210, 0.28);
+  background: rgba(59, 130, 246, 0.3);
   color: #fff;
 }
 
@@ -39,7 +39,7 @@ button {
   background:
     radial-gradient(
       circle at 72% -15%,
-      rgba(110, 91, 158, 0.17),
+      rgba(59, 130, 246, 0.16),
       transparent 33%
     ),
     radial-gradient(circle at 24% 90%, rgba(49, 54, 102, 0.1), transparent 35%),
@@ -91,10 +91,10 @@ button {
   height: 36px;
   flex: 0 0 auto;
   border-radius: 11px;
-  background: linear-gradient(145deg, #8d7bb5, #5f527e);
+  background: linear-gradient(145deg, #4f9cff, #2563d9);
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.2),
-    0 10px 28px rgba(93, 78, 130, 0.3);
+    0 10px 28px rgba(37, 99, 235, 0.3);
   color: white;
   overflow: hidden;
 }
@@ -162,9 +162,9 @@ button {
   background: linear-gradient(
     90deg,
     var(--todo-accent-soft),
-    rgba(124, 107, 160, 0.07)
+    rgba(59, 130, 246, 0.07)
   );
-  border-color: rgba(169, 154, 210, 0.13);
+  border-color: rgba(125, 178, 255, 0.16);
   color: var(--todo-accent-bright);
 }
 .app-sidebar nav button small {
@@ -798,7 +798,7 @@ button {
   background:
     radial-gradient(
       circle at 70% 0,
-      rgba(124, 107, 160, 0.16),
+      rgba(59, 130, 246, 0.16),
       transparent 34%
     ),
     #06091a;
@@ -995,7 +995,7 @@ button {
   background:
     radial-gradient(
       circle at 75% -10%,
-      rgba(110, 91, 158, 0.14),
+      rgba(59, 130, 246, 0.14),
       transparent 31%
     ),
     radial-gradient(circle at 15% 100%, rgba(35, 50, 91, 0.1), transparent 30%),
@@ -1045,11 +1045,11 @@ button {
   display: grid;
   place-items: center;
   border-radius: 10px;
-  background: linear-gradient(145deg, #8d7bb5, #5f527e);
+  background: linear-gradient(145deg, #4f9cff, #2563d9);
   color: white;
   box-shadow:
     inset 0 1px rgba(255, 255, 255, 0.2),
-    0 8px 22px rgba(93, 78, 130, 0.25);
+    0 8px 22px rgba(37, 99, 235, 0.25);
 }
 .tm-brand-mark svg {
   width: 16px;
@@ -1088,11 +1088,11 @@ button {
 .tm-primary-nav button.active,
 .tm-scope-nav button.active {
   color: var(--todo-accent-bright);
-  border-color: rgba(169, 154, 210, 0.12);
+  border-color: rgba(125, 178, 255, 0.16);
   background: linear-gradient(
     90deg,
     var(--todo-accent-soft),
-    rgba(124, 107, 160, 0.05)
+    rgba(59, 130, 246, 0.05)
   );
 }
 .tm-primary-nav svg {
@@ -1243,7 +1243,7 @@ button {
   align-items: start;
 }
 .tm-task-table {
-  overflow: hidden;
+  overflow: visible;
 }
 .tm-table-header,
 .tm-task-row {
@@ -1439,30 +1439,30 @@ button {
 }
 .tm-task-menu {
   position: absolute;
-  z-index: 20;
+  z-index: 100;
   top: calc(100% + 5px);
   right: 0;
-  width: 142px;
-  padding: 4px;
+  width: 192px;
+  padding: 7px;
   border: 1px solid var(--todo-border);
-  border-radius: 10px;
+  border-radius: 12px;
   background: var(--todo-surface);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.28);
   animation: app-reveal 0.14s ease both;
 }
 .tm-task-menu button {
   width: 100%;
-  height: 30px;
-  padding: 0 8px;
+  min-height: 42px;
+  padding: 0 11px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   border: 0;
-  border-radius: 7px;
+  border-radius: 8px;
   background: transparent;
   color: var(--todo-text-muted);
   cursor: pointer;
-  font: 500 8px var(--todo-font-mono);
+  font: 500 10px var(--todo-font-mono);
   text-align: left;
 }
 .tm-task-menu button:hover,
@@ -1476,11 +1476,14 @@ button {
   cursor: not-allowed;
 }
 .tm-task-menu button.danger {
+  margin-top: 6px;
+  border-top: 1px solid var(--todo-border);
+  border-radius: 0 0 8px 8px;
   color: var(--todo-danger);
 }
 .tm-task-menu svg {
-  width: 13px;
-  height: 13px;
+  width: 16px;
+  height: 16px;
   flex: 0 0 auto;
 }
 .tm-row-actions {
@@ -1506,7 +1509,7 @@ button {
   gap: 8px;
   border: 1px solid var(--todo-accent-border);
   border-radius: 10px;
-  background: rgba(124, 107, 160, 0.09);
+  background: rgba(59, 130, 246, 0.1);
   animation: app-reveal 0.18s ease both;
 }
 .tm-chip-panel > svg {
@@ -1610,16 +1613,16 @@ button {
 }
 .tm-heatmap i.level-1,
 .tm-heatmap-legend i.level-1 {
-  background: rgba(124, 107, 160, 0.32);
+  background: rgba(59, 130, 246, 0.3);
 }
 .tm-heatmap i.level-2,
 .tm-heatmap-legend i.level-2 {
-  background: rgba(142, 124, 184, 0.62);
+  background: rgba(96, 165, 250, 0.6);
 }
 .tm-heatmap i.level-3,
 .tm-heatmap-legend i.level-3 {
-  background: #a99ad2;
-  box-shadow: 0 0 7px rgba(169, 154, 210, 0.25);
+  background: #7db2ff;
+  box-shadow: 0 0 7px rgba(125, 178, 255, 0.28);
 }
 .tm-heatmap-legend {
   display: flex;
@@ -2252,7 +2255,7 @@ button {
   font-size: 25px;
 }
 .tm-task-table {
-  overflow: hidden;
+  overflow: visible;
 }
 .tm-table-header,
 .tm-task-row {
@@ -3602,6 +3605,10 @@ button {
       0.8fr
     ) minmax(100px, 0.5fr) 42px 132px;
 }
+.tm-app .tm-due-cell {
+  font-size: 12px;
+  line-height: 1.35;
+}
 .tm-app .tm-category-cell {
   justify-content: center;
 }
@@ -3683,10 +3690,10 @@ button {
   --todo-text-soft: #d7dde6;
   --todo-text-muted: #a5adba;
   --todo-text-faint: #747e8d;
-  --todo-accent: #5b91ec;
-  --todo-accent-bright: #73a5f5;
-  --todo-accent-soft: rgba(75, 132, 232, 0.14);
-  --todo-accent-border: rgba(115, 165, 245, 0.45);
+  --todo-accent: #3b82f6;
+  --todo-accent-bright: #7db2ff;
+  --todo-accent-soft: rgba(59, 130, 246, 0.16);
+  --todo-accent-border: rgba(125, 178, 255, 0.42);
   --todo-success: #68c27b;
   --todo-warning: #efb43d;
   --todo-danger: #ef7474;
@@ -5001,11 +5008,12 @@ button {
     min-height: 18px;
     padding: 0 2px 0 0;
     gap: 4px;
-    font-size: 8px;
+    font-size: 6px;
+    line-height: 1.25;
   }
 
   .tm-app .tm-task-meta .tm-due-cell svg {
-    width: 10px;
+    width: 9px;
   }
 
   .tm-app .tm-row-wrap.child .tm-task-row {
@@ -5045,16 +5053,27 @@ button {
   }
 
   .tm-mobile-add-dialog {
+    --todo-accent: #4a84e8;
+    --todo-accent-bright: #73a5f5;
+    --todo-accent-soft: rgba(75, 132, 232, 0.16);
+    --todo-accent-border: rgba(115, 165, 245, 0.52);
     top: auto;
     right: 0;
-    bottom: 0;
+    bottom: var(--mobile-keyboard-inset, 0px);
     left: 0;
-    width: 100%;
+    width: 100vw;
+    min-width: 0;
     max-width: none;
-    max-height: min(78dvh, 720px);
-    padding: 18px 14px max(18px, env(safe-area-inset-bottom));
+    max-inline-size: 100vw;
+    max-height: min(
+      78dvh,
+      calc(100dvh - var(--mobile-keyboard-inset, 0px) - 8px)
+    );
+    translate: 0 0;
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom));
     transform: none;
-    overflow-y: auto;
+    overflow-x: clip;
+    overflow-y: hidden;
     border: 1px solid var(--todo-border-strong);
     border-width: 1px 0 0;
     border-radius: 20px 20px 0 0;
@@ -5062,23 +5081,184 @@ button {
   }
 
   .tm-mobile-add-heading {
-    padding: 0 4px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
-  .tm-mobile-add-heading [data-slot='dialog-title'] {
-    font: 650 18px var(--todo-font-display);
-  }
-
-  .tm-mobile-add-heading [data-slot='dialog-description'] {
-    color: var(--todo-text-faint);
-    font-size: 10px;
+  .tm-mobile-add-dialog > [data-slot='dialog-close'] {
+    z-index: 2;
+    top: 17px;
+    right: 13px;
   }
 
   .tm-mobile-add-dialog > .sg-quick-add {
-    margin-top: 4px;
-    border-color: var(--todo-border-strong);
-    border-radius: 14px;
-    background: var(--todo-surface);
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin: 0;
+    padding: 4px;
+    overflow: visible;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-main {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    min-height: 48px;
+    gap: 8px;
+    padding: 0 38px 0 8px;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-main > input {
+    width: 0;
+    min-width: 0;
+    height: 46px;
+    font-size: 16px;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-main > input:focus-visible,
+  .tm-mobile-add-dialog .sg-deadline-input > input:focus-visible {
+    outline: none;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-category {
+    width: clamp(88px, 27vw, 108px);
+    min-width: 0;
+    max-width: 108px;
+    height: 36px;
+    flex: 0 0 auto;
+  }
+
+  .tm-mobile-add-dialog .sg-enter-hint {
+    display: none;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-details {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 6px 4px 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-details > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tm-mobile-add-dialog .sg-detail-toggle,
+  .tm-mobile-add-dialog .sg-subtask-toggle {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    min-height: 40px;
+    margin: 0;
+    padding: 0 8px;
+    gap: 6px;
+    border-color: var(--todo-border);
+    background: rgba(255, 255, 255, 0.025);
+    font-size: 9px;
+  }
+
+  .tm-mobile-add-dialog .sg-detail-toggle {
+    order: 1;
+  }
+
+  .tm-mobile-add-dialog .sg-subtask-toggle {
+    order: 2;
+  }
+
+  .tm-mobile-add-dialog .sg-detail-toggle small,
+  .tm-mobile-add-dialog .sg-subtask-toggle small,
+  .tm-mobile-add-dialog .sg-detail-toggle > svg:last-child,
+  .tm-mobile-add-dialog .sg-subtask-toggle > svg:last-child {
+    display: none;
+  }
+
+  .tm-mobile-add-dialog .sg-detail-toggle span,
+  .tm-mobile-add-dialog .sg-subtask-toggle span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-actions {
+    min-width: 0;
+    max-width: 100%;
+    order: 3;
+    margin: 0;
+    display: flex;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-summary,
+  .tm-mobile-add-dialog .sg-quick-actions .sg-button-ghost {
+    display: none;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-actions > div {
+    min-width: 0;
+    max-width: 100%;
+    display: block;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-actions .sg-button {
+    min-width: 64px;
+    max-width: 76px;
+    padding-inline: 8px;
+    min-height: 40px;
+    white-space: nowrap;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-schedule,
+  .tm-mobile-add-dialog .sg-subtask-builder {
+    order: 4;
+    grid-column: 1 / -1;
+    max-height: min(34dvh, 270px);
+    margin: 2px 0 0;
+    overflow-y: auto;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-fields,
+  .tm-mobile-add-dialog .sg-exact-deadline {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tm-mobile-add-dialog .sg-deadline-input,
+  .tm-mobile-add-dialog .sg-subtask-editor-row,
+  .tm-mobile-add-dialog .sg-subtask-list-editor {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .tm-mobile-add-dialog .sg-quick-schedule {
+    padding: 9px;
+  }
+
+  .tm-mobile-add-dialog .sg-human-deadline > label,
+  .tm-mobile-add-dialog .sg-deadline-feedback > span:not(:has(strong)) {
+    display: none;
+  }
+
+  .tm-mobile-add-dialog .sg-deadline-presets {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .tm-mobile-add-dialog .sg-deadline-presets button {
+    flex: 0 0 auto;
   }
 
   .tm-settings-dialog {
@@ -5090,6 +5270,7 @@ button {
     max-width: none;
     height: 100dvh;
     max-height: none;
+    translate: 0 0;
     padding: 14px 14px max(20px, env(safe-area-inset-bottom));
     transform: none;
     overflow-y: auto;
@@ -5119,5 +5300,44 @@ button {
   .tm-settings-dialog > .tm-day-boundary-presets,
   .tm-settings-dialog > .tm-day-boundary-example {
     margin-inline: 4px;
+  }
+}
+
+/* Small interaction refinements: keep the existing visual language while
+   making keyboard and touch state changes easier to follow. */
+.tm-app :where(button, input, select, [role='menuitem']):focus-visible {
+  outline: 2px solid var(--todo-accent-bright);
+  outline-offset: 2px;
+}
+
+.tm-app .tm-task-row:focus-within {
+  background: var(--todo-surface-hover);
+}
+
+.tm-app .tm-task-row:focus-within .tm-row-actions .sg-icon-button {
+  opacity: 1;
+}
+
+.tm-app .tm-title-button:focus-visible,
+.tm-app .tm-expand-button:focus-visible {
+  border-radius: 6px;
+}
+
+.tm-app .tm-emoji-filter button,
+.tm-app .tm-mobile-add-task {
+  touch-action: manipulation;
+}
+
+.tm-app .tm-mobile-add-task:active {
+  transform: scale(0.96);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tm-app .tm-row-actions .sg-icon-button,
+  .tm-app .tm-mobile-add-task {
+    transition:
+      opacity 0.16s ease,
+      transform 0.16s ease,
+      box-shadow 0.16s ease;
   }
 }

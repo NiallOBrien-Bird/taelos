@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono, Outfit } from 'next/font/google';
 import './globals.css';
 
@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   title: 'Still — personal task manager',
   description:
     'A calm personal task manager for making progress visible, one next step at a time.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  interactiveWidget: 'resizes-content',
 };
 
 export default function RootLayout({

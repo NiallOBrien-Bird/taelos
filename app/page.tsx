@@ -1593,6 +1593,7 @@ function Navigation({
               key={item}
               type="button"
               className={view === item ? 'active' : ''}
+              aria-current={view === item ? 'page' : undefined}
               onClick={() => onView(item)}
               title={
                 collapsed ? item[0].toUpperCase() + item.slice(1) : undefined
@@ -1974,6 +1975,7 @@ function TaskGridRow({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const due = dueDisplay(row.dueDate, row.dueTime, row.dueLabel, dayEndTime);
   const category = categories[row.category] ?? {
     icon: '🏷️',
@@ -1989,12 +1991,19 @@ function TaskGridRow({
       : 0;
   useEffect(() => {
     if (!menuOpen) return;
+    const firstMenuItem = menuRef.current?.querySelector<HTMLButtonElement>(
+      '[role="menuitem"]:not(:disabled)',
+    );
+    firstMenuItem?.focus();
     const closeMenu = (event: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node))
         setMenuOpen(false);
     };
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setMenuOpen(false);
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        requestAnimationFrame(() => menuButtonRef.current?.focus());
+      }
     };
     document.addEventListener('pointerdown', closeMenu);
     document.addEventListener('keydown', closeOnEscape);
@@ -2024,6 +2033,7 @@ function TaskGridRow({
               className="tm-expand-button"
               onClick={onToggleExpand}
               aria-label={`${expanded ? 'Collapse' : 'Expand'} ${row.title}`}
+              aria-expanded={expanded}
             >
               <ChevronIcon direction={expanded ? 'down' : 'right'} />
             </button>
@@ -2032,6 +2042,7 @@ function TaskGridRow({
             type="button"
             className="tm-title-button"
             onClick={row.subtasks.length ? onToggleExpand : onChip}
+            aria-expanded={row.subtasks.length ? expanded : undefined}
           >
             <span>{row.title}</span>
           </button>
@@ -2060,6 +2071,7 @@ function TaskGridRow({
             aria-expanded={menuOpen}
             aria-haspopup="menu"
             className="tm-more-button"
+            ref={menuButtonRef}
           >
             <MoreIcon />
           </IconButton>
@@ -3178,6 +3190,7 @@ function TasksPage({
   );
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
+  const [mobileKeyboardInset, setMobileKeyboardInset] = useState(0);
   const mobileTaskInputRef = useRef<HTMLInputElement>(null);
   const [iconPickerOpen, setIconPickerOpen] = useState(false);
   const [iconSearch, setIconSearch] = useState('');
@@ -3193,6 +3206,27 @@ function TasksPage({
     x: number;
     y: number;
   } | null>(null);
+  useEffect(() => {
+    if (!mobileAddOpen || !window.visualViewport) return;
+    const viewport = window.visualViewport;
+    let frame = 0;
+    const updateKeyboardInset = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setMobileKeyboardInset(
+          Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop),
+        );
+      });
+    };
+    updateKeyboardInset();
+    viewport.addEventListener('resize', updateKeyboardInset);
+    viewport.addEventListener('scroll', updateKeyboardInset);
+    return () => {
+      cancelAnimationFrame(frame);
+      viewport.removeEventListener('resize', updateKeyboardInset);
+      viewport.removeEventListener('scroll', updateKeyboardInset);
+    };
+  }, [mobileAddOpen]);
   useEffect(() => {
     if (!categoryDialogOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -3413,7 +3447,14 @@ function TasksPage({
         <DialogTrigger className="tm-mobile-add-task" aria-label="Add a task">
           <span aria-hidden="true">+</span>
         </DialogTrigger>
-        <DialogContent className="tm-mobile-add-dialog">
+        <DialogContent
+          className="tm-mobile-add-dialog"
+          style={
+            {
+              '--mobile-keyboard-inset': `${mobileKeyboardInset}px`,
+            } as CSSProperties
+          }
+        >
           <DialogHeader className="tm-mobile-add-heading">
             <DialogTitle>Add a task</DialogTitle>
             <DialogDescription>

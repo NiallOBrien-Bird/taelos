@@ -9,10 +9,10 @@
   --todo-text-soft: #cbd5e1;
   --todo-text-muted: #94a3b8;
   --todo-text-faint: #64748b;
-  --todo-accent: #7c6ba0;
-  --todo-accent-bright: #b3a6d7;
-  --todo-accent-soft: rgba(124, 107, 160, 0.16);
-  --todo-accent-border: rgba(169, 154, 210, 0.35);
+  --todo-accent: #3b82f6;
+  --todo-accent-bright: #7db2ff;
+  --todo-accent-soft: rgba(59, 130, 246, 0.16);
+  --todo-accent-border: rgba(125, 178, 255, 0.38);
   --todo-success: #4ade80;
   --todo-warning: #fbbf24;
   --todo-danger: #f87171;
@@ -24,10 +24,10 @@
 }
 
 .todo-style-guide.sg-accent-indigo {
-  --todo-accent: #6f79b8;
-  --todo-accent-bright: #a7b0ed;
-  --todo-accent-soft: rgba(111, 121, 184, 0.16);
-  --todo-accent-border: rgba(167, 176, 237, 0.35);
+  --todo-accent: #2563eb;
+  --todo-accent-bright: #93c5fd;
+  --todo-accent-soft: rgba(37, 99, 235, 0.16);
+  --todo-accent-border: rgba(147, 197, 253, 0.38);
 }
 
 .todo-style-guide *, .todo-style-guide *::before, .todo-style-guide *::after { box-sizing: border-box; }
