@@ -1,0 +1,85 @@
+[
+  {
+    "id": "task-plan-week",
+    "title": "Plan the week before Monday gets loud",
+    "completed": false,
+    "dueDate": "2026-08-30",
+    "category": "📗 Study",
+    "project": "Weekly reset",
+    "subtasks": [
+      {
+        "id": "sub-review",
+        "title": "Review open loops",
+        "completed": true
+      },
+      {
+        "id": "sub-focus",
+        "title": "Choose three focus outcomes",
+        "completed": false
+      },
+      {
+        "id": "sub-reading",
+        "title": "Finish research notes",
+        "completed": false,
+        "progress": {
+          "current": 620,
+          "target": 1000,
+          "unit": "words"
+        }
+      }
+    ],
+    "createdAt": "2026-08-27T09:00:00.000Z"
+  },
+  {
+    "id": "task-book-dentist",
+    "title": "Book the dentist appointment",
+    "completed": false,
+    "dueDate": "2026-08-29",
+    "category": "🎤 Voice",
+    "progress": {
+      "current": 15,
+      "unit": "minutes"
+    },
+    "subtasks": [],
+    "createdAt": "2026-08-28T12:00:00.000Z"
+  },
+  {
+    "id": "task-design-notes",
+    "title": "Consolidate the scattered design notes into one useful brief",
+    "completed": false,
+    "dueDate": "2026-09-02",
+    "category": "🗒️ Notes",
+    "project": "Task manager",
+    "subtasks": [
+      {
+        "id": "sub-sort-notes",
+        "title": "Sort notes by workflow",
+        "completed": false,
+        "progress": {
+          "current": 18,
+          "target": 30,
+          "unit": "minutes"
+        }
+      },
+      {
+        "id": "sub-write-summary",
+        "title": "Write the one-page summary",
+        "completed": false,
+        "progress": {
+          "current": 0,
+          "target": 500,
+          "unit": "words"
+        }
+      }
+    ],
+    "createdAt": "2026-08-26T08:00:00.000Z"
+  },
+  {
+    "id": "task-water-plants",
+    "title": "Water the plants",
+    "completed": true,
+    "category": "🧼 Cleaning",
+    "subtasks": [],
+    "createdAt": "2026-08-25T08:00:00.000Z"
+  }
+]
