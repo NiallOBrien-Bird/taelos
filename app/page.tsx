@@ -9,6 +9,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { Settings2Icon } from 'lucide-react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import {
@@ -1454,7 +1455,7 @@ function DayBoundarySettings({
   return (
     <Dialog>
       <DialogTrigger className="tm-settings-trigger" aria-label="Open settings">
-        <span className="tm-settings-trigger-desktop"><SettingsIcon /></span>
+        <span className="tm-settings-trigger-desktop"><Settings2Icon /></span>
         <span className="tm-settings-trigger-mobile"><MoreIcon /></span>
         <span>Settings</span>
       </DialogTrigger>
@@ -1463,7 +1464,7 @@ function DayBoundarySettings({
           <WorkDonePanel tasks={tasks} dayEndTime={dayEndTime} />
         </div>
         <DialogHeader className="tm-settings-heading">
-          <span className="tm-settings-icon"><SettingsIcon /></span>
+          <span className="tm-settings-icon"><Settings2Icon /></span>
           <div>
             <DialogTitle>Settings</DialogTitle>
             <DialogDescription>Shape the app around the way your day actually works.</DialogDescription>
@@ -4132,14 +4133,6 @@ function MoonIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M16.5 12.8A7 7 0 0 1 7.2 3.5 7 7 0 1 0 16.5 12.8Z" />
-    </svg>
-  );
-}
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="m8.2 2.8.5 1.8a5.8 5.8 0 0 1 2.6 0l.5-1.8h2.1l.5 1.8a5.7 5.7 0 0 1 2.2 1.3l1.7-.8 1.1 1.8-1.4 1.3a5.8 5.8 0 0 1 .7 2.5l1.8.5v2.1l-1.8.5a5.8 5.8 0 0 1-.7 2.5l1.4 1.3-1.1 1.8-1.7-.8a5.7 5.7 0 0 1-2.2 1.3l-.5 1.8h-2.1l-.5-1.8a5.8 5.8 0 0 1-2.6 0l-.5 1.8H6.1l-.5-1.8a5.7 5.7 0 0 1-2.2-1.3l-1.7.8-1.1-1.8L2 14.5a5.8 5.8 0 0 1-.7-2.5l-1.8-.5V9.4l1.8-.5A5.8 5.8 0 0 1 2 6.4L.6 5.1l1.1-1.8 1.7.8a5.7 5.7 0 0 1 2.2-1.3l.5-1.8Z" transform="translate(1 0) scale(.9)" />
-      <circle cx="10" cy="10" r="2.5" />
     </svg>
   );
 }
