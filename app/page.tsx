@@ -1357,6 +1357,24 @@ const categoryMeta: Record<string, CategoryMeta> = {
   '📗 Study': { icon: '📗', label: 'Study' },
   '👤 People': { icon: '👤', label: 'People' },
 };
+const deletedDefaultCategoriesKey = 'caxius-todo.deleted-default-categories.v1';
+
+function readDeletedDefaultCategories() {
+  try {
+    const saved = window.localStorage.getItem(deletedDefaultCategoriesKey);
+    const names = saved ? JSON.parse(saved) : [];
+    return new Set(
+      Array.isArray(names)
+        ? names.filter(
+            (name): name is string =>
+              typeof name === 'string' && Boolean(categoryMeta[name]),
+          )
+        : [],
+    );
+  } catch {
+    return new Set<string>();
+  }
+}
 
 function toDateString(date: Date) {
   return toDateKey(date);
@@ -1622,7 +1640,7 @@ function Navigation({
             </button>
           ))}
         </nav>
-        <SignOutButton />
+        <SignOutButton compact={collapsed} />
       </aside>
 
       <nav className="app-mobile-nav" aria-label="Primary mobile navigation">
@@ -3263,14 +3281,18 @@ function TasksPage({
     () => {
       if (typeof window === 'undefined') return categoryMeta;
       const saved = window.localStorage.getItem('caxius-todo.categories.v1');
-      if (!saved) return categoryMeta;
+      const deletedDefaults = readDeletedDefaultCategories();
+      const defaults = Object.fromEntries(
+        Object.entries(categoryMeta).filter(([name]) => !deletedDefaults.has(name)),
+      );
+      if (!saved) return defaults;
       try {
         const custom = JSON.parse(saved) as Record<string, CategoryMeta>;
         return custom && typeof custom === 'object'
-          ? { ...categoryMeta, ...custom }
-          : categoryMeta;
+          ? { ...defaults, ...custom }
+          : defaults;
       } catch {
-        return categoryMeta;
+        return defaults;
       }
     },
   );
@@ -3350,11 +3372,13 @@ function TasksPage({
     setCategoryDialogOpen(false);
   };
   const deleteCategory = (name: string) => {
-    if (categoryMeta[name]) return;
     const label = categories[name]?.label ?? name;
+    const movesToNotes = name !== '🗒️ Notes';
     if (
       !window.confirm(
-        `Delete “${label}”? Tasks using this tag will move to Notes.`,
+        movesToNotes
+          ? `Delete “${label}”? Tasks using this tag will move to Notes.`
+          : `Delete “${label}”? It will be hidden from filters; existing tasks will keep their Notes label.`,
       )
     )
       return;
@@ -3363,12 +3387,24 @@ function TasksPage({
     );
     const nextTasks = tasks.map((task) => ({
       ...task,
-      category: task.category === name ? '🗒️ Notes' : task.category,
+      category:
+        task.category === name && movesToNotes ? '🗒️ Notes' : task.category,
       subtasks: task.subtasks.map((subtask) => ({
         ...subtask,
-        category: subtask.category === name ? '🗒️ Notes' : subtask.category,
+        category:
+          subtask.category === name && movesToNotes
+            ? '🗒️ Notes'
+            : subtask.category,
       })),
     }));
+    if (categoryMeta[name]) {
+      const deletedDefaults = readDeletedDefaultCategories();
+      deletedDefaults.add(name);
+      window.localStorage.setItem(
+        deletedDefaultCategoriesKey,
+        JSON.stringify([...deletedDefaults]),
+      );
+    }
     setCategories(nextCategories);
     setCategory(category === name ? 'All' : category);
     window.localStorage.setItem(
@@ -3577,7 +3613,6 @@ function TasksPage({
               className={category === name ? 'active' : ''}
               onClick={() => setCategory(category === name ? 'All' : name)}
               onContextMenu={(event) => {
-                if (categoryMeta[name]) return;
                 event.preventDefault();
                 setCategoryContextMenu({
                   name,
@@ -3588,10 +3623,8 @@ function TasksPage({
               aria-pressed={category === name}
               aria-label={`${category === name ? 'Clear filter' : 'Filter by'} ${meta.label}`}
               title={
-                categoryMeta[name]
-                  ? category === name
-                    ? 'Clear category filter'
-                    : meta.label
+                category === name
+                  ? 'Clear category filter'
                   : `${meta.label} — right-click to delete`
               }
             >
