@@ -144,7 +144,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -2669,18 +2668,31 @@ function TaskEditDialog({
           </div>
           <div className="tm-edit-dialog-field">
             <span>Category</span>
-            <NativeSelect
-              className="tm-native-select"
+            <Select
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              aria-label="Task category"
+              onValueChange={(value) => {
+                if (value) setCategory(value);
+              }}
             >
-              {Object.entries(categories).map(([name, meta]) => (
-                <NativeSelectOption key={name} value={name}>
-                  {meta.label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                className="tm-site-select-trigger"
+                aria-label="Task category"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="tm-site-select-content" sideOffset={6}>
+                {Object.entries(categories).map(([name, meta]) => (
+                  <SelectItem
+                    key={name}
+                    value={name}
+                    className="tm-site-select-item"
+                  >
+                    <CategoryIcon icon={meta.icon} />
+                    {meta.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="tm-edit-dialog-actions">
             <button type="button" onClick={onClose}>
