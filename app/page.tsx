@@ -144,6 +144,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SignOutButton } from '@/components/SignOutButton';
 
 type View =
@@ -2120,9 +2127,6 @@ function TaskGridRow({
   onDelete: () => void;
   onShelf: () => void;
 }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const menuButtonRef = useRef<HTMLButtonElement>(null);
   const due = dueDisplay(row.dueDate, row.dueTime, row.dueLabel, dayEndTime);
   const category = categories[row.category] ?? {
     icon: '🏷️',
@@ -2136,29 +2140,6 @@ function TaskGridRow({
     !row.completed && row.subtasks.length === 0 && loggedWorkSessions
       ? Math.min(9, 4 + loggedWorkSessions)
       : 0;
-  useEffect(() => {
-    if (!menuOpen) return;
-    const firstMenuItem = menuRef.current?.querySelector<HTMLButtonElement>(
-      '[role="menuitem"]:not(:disabled)',
-    );
-    firstMenuItem?.focus();
-    const closeMenu = (event: PointerEvent) => {
-      if (menuRef.current && !menuRef.current.contains(event.target as Node))
-        setMenuOpen(false);
-    };
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setMenuOpen(false);
-        requestAnimationFrame(() => menuButtonRef.current?.focus());
-      }
-    };
-    document.addEventListener('pointerdown', closeMenu);
-    document.addEventListener('keydown', closeOnEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeMenu);
-      document.removeEventListener('keydown', closeOnEscape);
-    };
-  }, [menuOpen]);
   return (
     <div
       className={`tm-row-wrap${depth ? ' child' : ''}${row.completed ? ' completed' : ''}`}
@@ -2210,72 +2191,44 @@ function TaskGridRow({
         >
           <DeferIcon />
         </IconButton>
-        <div className="tm-compact-menu" ref={menuRef}>
-          <IconButton
-            label={`More actions for ${row.title}`}
-            size="small"
-            onClick={() => setMenuOpen((open) => !open)}
-            aria-expanded={menuOpen}
-            aria-haspopup="menu"
-            className="tm-more-button"
-            ref={menuButtonRef}
-          >
-            <MoreIcon />
-          </IconButton>
-          {menuOpen && (
-            <div
+        <div className="tm-compact-menu">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <IconButton
+                  label={`More actions for ${row.title}`}
+                  size="small"
+                  className="tm-more-button"
+                >
+                  <MoreIcon />
+                </IconButton>
+              }
+            />
+            <DropdownMenuContent
               className="tm-task-menu"
-              role="menu"
+              align="end"
+              sideOffset={7}
               aria-label={`Actions for ${row.title}`}
             >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  onDefer();
-                  setMenuOpen(false);
-                }}
-                disabled={row.completed}
-              >
+              <DropdownMenuItem onClick={onDefer} disabled={row.completed}>
                 <DeferIcon />
                 <span>Defer</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  onEdit();
-                  setMenuOpen(false);
-                }}
-              >
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onEdit}>
                 <EditIcon />
                 <span>Edit task</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  onShelf();
-                  setMenuOpen(false);
-                }}
-              >
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onShelf}>
                 <ArchiveIcon />
                 <span>Move to shelf</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                className="danger"
-                onClick={() => {
-                  onDelete();
-                  setMenuOpen(false);
-                }}
-              >
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <TrashIcon />
                 <span>Delete task</span>
-              </button>
-            </div>
-          )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         <div className="tm-row-actions">
           <IconButton
