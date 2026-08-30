@@ -3989,6 +3989,7 @@ function TimelinePage({
   dayEndTime: string;
 }) {
   const [deferTask, setDeferTask] = useState<Task | null>(null);
+  const [chipTask, setChipTask] = useState<Task | null>(null);
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
   const todayKey = toDateString(today);
@@ -4061,6 +4062,23 @@ function TimelinePage({
     void taskRepository.replace(next);
     setDeferTask(null);
   };
+  const logWork = (task: Task, amount: number, unit: ProgressUnit) => {
+    const next = tasks.map((item) =>
+      item.id === task.id
+        ? recordWork({
+            ...item,
+            progress: {
+              current:
+                (item.progress?.unit === unit ? item.progress.current : 0) +
+                amount,
+              unit,
+            },
+          })
+        : item,
+    );
+    onChange(next);
+    void taskRepository.replace(next);
+  };
 
   return (
     <section className="tm-timeline-page" aria-labelledby="timeline-title">
@@ -4109,39 +4127,52 @@ function TimelinePage({
                     icon: '🏷️',
                     label: task.category,
                   };
+                  const loggedWorkSessions = Math.max(
+                    task.workLog?.length ?? 0,
+                    task.progress && task.progress.current > 0 ? 1 : 0,
+                  );
+                  const workLevel =
+                    task.subtasks.length === 0 && loggedWorkSessions
+                      ? Math.min(9, 4 + loggedWorkSessions)
+                      : 0;
                   return (
                     <article className="tm-timeline-item" key={task.id}>
-                      <button
-                        type="button"
-                        className="tm-timeline-check"
-                        aria-label={`Mark ${task.title} complete`}
-                        onClick={() => toggleComplete(task)}
-                      >
-                        <CheckIcon />
-                      </button>
-                      <div>
+                      <div className="tm-title-cell">
+                        <CompletionCircle
+                          checked={false}
+                          workLevel={workLevel}
+                          label={`Mark ${task.title} complete`}
+                          onChange={() => toggleComplete(task)}
+                        />
                         <h3>{task.title}</h3>
-                        <p>
-                          <span title={category.label}>
-                            <CategoryIcon icon={category.icon} />
-                            {category.label}
-                          </span>
-                          {task.subtasks.length > 0 && (
-                            <span>{formatWorkDone(task)}</span>
-                          )}
-                        </p>
                       </div>
-                      <div className="tm-timeline-actions">
-                        <button
-                          type="button"
-                          className="tm-timeline-defer-chip"
-                          onClick={() => setDeferTask(task)}
-                        >
-                          <DeferIcon />
-                          <span>Defer</span>
-                        </button>
-                        <time className={due.state}>{due.label}</time>
+                      <WorkDoneCell
+                        row={task}
+                        onChip={() => setChipTask(task)}
+                      />
+                      <div className={`tm-due-cell ${due.state}`}>
+                        {due.state === 'overdue' ? (
+                          <WarningIcon />
+                        ) : (
+                          <CalendarIcon />
+                        )}
+                        <time>{due.label}</time>
                       </div>
+                      <div
+                        className="tm-category-cell"
+                        title={category.label}
+                        aria-label={category.label}
+                      >
+                        <CategoryIcon icon={category.icon} />
+                      </div>
+                      <IconButton
+                        label={`Defer ${task.title}`}
+                        size="small"
+                        className="tm-timeline-defer-button"
+                        onClick={() => setDeferTask(task)}
+                      >
+                        <DeferIcon />
+                      </IconButton>
                     </article>
                   );
                 })}
@@ -4162,6 +4193,13 @@ function TimelinePage({
           dayEndTime={dayEndTime}
           onDefer={defer}
           onClose={() => setDeferTask(null)}
+        />
+      )}
+      {chipTask && (
+        <ChipAwayDialog
+          row={chipTask}
+          onRecord={(amount, unit) => logWork(chipTask, amount, unit)}
+          onClose={() => setChipTask(null)}
         />
       )}
     </section>

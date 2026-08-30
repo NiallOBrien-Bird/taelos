@@ -6269,3 +6269,110 @@ button {
     }
   }
 }
+
+/* Timeline rows share the task table's column rhythm and controls. */
+.tm-app .tm-timeline-items {
+  container-name: timeline-items;
+  container-type: inline-size;
+}
+
+.tm-app .tm-timeline-item {
+  min-height: 48px;
+  display: grid;
+  grid-template-columns:
+    minmax(330px, 1.75fr)
+    minmax(150px, 0.8fr)
+    minmax(150px, 0.8fr)
+    minmax(100px, 0.5fr)
+    42px;
+  align-items: center;
+  column-gap: 5px;
+  padding: 7px 12px 7px 16px;
+}
+
+.tm-app .tm-timeline-item .tm-title-cell {
+  min-width: 0;
+  padding-left: 0;
+}
+
+.tm-app .tm-timeline-item h3 {
+  min-width: 0;
+  overflow: hidden;
+  color: #4a4e55;
+  font: 400 14px/1.35 var(--todo-font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tm-app .tm-timeline-item .tm-category-cell {
+  display: grid;
+  place-items: center;
+  justify-self: stretch;
+}
+
+.tm-app .tm-timeline-item .tm-category-cell i,
+.tm-app .tm-timeline-item .tm-category-cell svg {
+  font-size: 16px;
+}
+
+.tm-app .tm-timeline-item .tm-due-cell time {
+  color: inherit;
+  font: inherit;
+}
+
+.tm-app .tm-timeline-defer-button {
+  width: 36px;
+  height: 32px;
+  justify-self: center;
+  color: #666;
+}
+
+.tm-app .tm-timeline-defer-button svg {
+  width: 14px;
+}
+
+.tm-app.tm-theme-dark .tm-timeline-item h3 {
+  color: #d7dde6;
+}
+
+.tm-app.tm-theme-dark .tm-timeline-defer-button {
+  color: #aab3c0;
+}
+
+@container timeline-items (max-width: 800px) {
+  .tm-app .tm-timeline-item {
+    grid-template-columns: minmax(0, 1fr) minmax(120px, 0.42fr) 42px;
+  }
+
+  .tm-app .tm-timeline-item > .tm-work-cell,
+  .tm-app .tm-timeline-item > .tm-category-cell {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .tm-app .tm-timeline-item {
+    min-height: 70px;
+    grid-template-columns: minmax(0, 1fr) 34px;
+    grid-template-rows: auto 18px;
+    column-gap: 6px;
+    row-gap: 4px;
+    padding: 12px 10px 10px 14px;
+  }
+
+  .tm-app .tm-timeline-item .tm-title-cell {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .tm-app .tm-timeline-item > .tm-due-cell {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: end;
+  }
+
+  .tm-app .tm-timeline-defer-button {
+    grid-column: 2;
+    grid-row: 1 / 3;
+  }
+}
