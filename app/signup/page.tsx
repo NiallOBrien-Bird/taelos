@@ -4,7 +4,6 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, LockKeyholeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 
@@ -187,7 +186,8 @@ export default function SignupPage() {
           <form onSubmit={submit}>
             <label>
               <span>Email</span>
-              <Input
+              <input
+                className="auth-input"
                 type="email"
                 autoComplete="email"
                 value={email}
@@ -198,7 +198,8 @@ export default function SignupPage() {
             </label>
             <label>
               <span>Password</span>
-              <Input
+              <input
+                className="auth-input"
                 type="password"
                 autoComplete={
                   mode === 'signup' ? 'new-password' : 'current-password'
