@@ -3990,6 +3990,7 @@ function TimelinePage({
 }) {
   const [deferTask, setDeferTask] = useState<Task | null>(null);
   const [chipTask, setChipTask] = useState<Task | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState('All');
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
   const todayKey = toDateString(today);
@@ -4004,19 +4005,58 @@ function TimelinePage({
   const isWeekend = today.getDay() === 0 || today.getDay() === 6;
 
   const groups: TimelineGroup[] = [
-    { id: 'earlier', label: 'Earlier', tasks: [] },
+    {
+      id: 'earlier',
+      label: 'Earlier',
+      description: 'Past due and still open',
+      tasks: [],
+    },
     {
       id: 'today',
       label: 'Today',
       description: 'What needs your attention now',
       tasks: [],
     },
-    ...(isWeekend ? [{ id: 'weekend', label: 'This weekend', tasks: [] }] : []),
-    { id: 'few-days', label: 'Next few days', tasks: [] },
-    { id: 'this-week', label: 'This week', tasks: [] },
-    { id: 'next-week', label: 'Next week', tasks: [] },
-    { id: 'this-month', label: 'This month', tasks: [] },
-    { id: 'this-year', label: 'This year', tasks: [] },
+    ...(isWeekend
+      ? [
+          {
+            id: 'weekend',
+            label: 'This weekend',
+            description: 'Before the week resets',
+            tasks: [],
+          },
+        ]
+      : []),
+    {
+      id: 'few-days',
+      label: 'Next few days',
+      description: 'Coming up soon',
+      tasks: [],
+    },
+    {
+      id: 'this-week',
+      label: 'This week',
+      description: 'Before Sunday',
+      tasks: [],
+    },
+    {
+      id: 'next-week',
+      label: 'Next week',
+      description: 'The week ahead',
+      tasks: [],
+    },
+    {
+      id: 'this-month',
+      label: 'This month',
+      description: 'Later this month',
+      tasks: [],
+    },
+    {
+      id: 'this-year',
+      label: 'This year',
+      description: 'Further ahead',
+      tasks: [],
+    },
   ];
 
   const groupFor = (dueDate: string) => {
@@ -4031,8 +4071,32 @@ function TimelinePage({
     return undefined;
   };
 
-  tasks
-    .filter((task) => !task.shelved && !task.completed && task.dueDate)
+  const plannedTasks = tasks.filter(
+    (task) =>
+      !task.shelved &&
+      !task.completed &&
+      task.dueDate &&
+      groupFor(task.dueDate),
+  );
+  const timelineCategories = Array.from(
+    new Set(plannedTasks.map((task) => task.category)),
+  );
+  const categoryFor = (name: string) => {
+    if (categoryMeta[name]) return categoryMeta[name];
+    const [icon, ...labelParts] = name.split(' ');
+    if (categoryIconById.has(icon) && labelParts.length) {
+      return { icon, label: labelParts.join(' ') };
+    }
+    return { icon: 'tags', label: name };
+  };
+  const filteredTasks = plannedTasks.filter(
+    (task) => categoryFilter === 'All' || task.category === categoryFilter,
+  );
+  const dueNowCount = plannedTasks.filter(
+    (task) => task.dueDate && task.dueDate <= todayKey,
+  ).length;
+
+  filteredTasks
     .sort((left, right) =>
       `${left.dueDate}-${left.dueTime ?? '99:99'}`.localeCompare(
         `${right.dueDate}-${right.dueTime ?? '99:99'}`,
@@ -4090,16 +4154,58 @@ function TimelinePage({
           <div>
             <p>Plan</p>
             <h1 id="timeline-title">Timeline</h1>
+            <p className="tm-timeline-intro">
+              See what matters now, then what comes next.
+            </p>
           </div>
         </div>
-        <small>
-          {visibleGroups.reduce(
-            (total, group) => total + group.tasks.length,
-            0,
-          )}{' '}
-          planned
-        </small>
+        <div className="tm-timeline-summary" aria-label="Timeline summary">
+          <div>
+            <strong>{plannedTasks.length}</strong>
+            <span>Planned</span>
+          </div>
+          <div className={dueNowCount ? 'attention' : ''}>
+            <strong>{dueNowCount}</strong>
+            <span>Due now</span>
+          </div>
+        </div>
       </header>
+      <div className="tm-timeline-filters" aria-label="Filter timeline tasks">
+        <span>Categories</span>
+        <fieldset>
+          <legend>Filter timeline by category</legend>
+          <button
+            type="button"
+            className={categoryFilter === 'All' ? 'active' : ''}
+            aria-pressed={categoryFilter === 'All'}
+            onClick={() => setCategoryFilter('All')}
+          >
+            <span>All</span>
+            <small>{plannedTasks.length}</small>
+          </button>
+          {timelineCategories.map((name) => {
+            const meta = categoryFor(name);
+            const count = plannedTasks.filter(
+              (task) => task.category === name,
+            ).length;
+            return (
+              <button
+                type="button"
+                key={name}
+                className={categoryFilter === name ? 'active' : ''}
+                aria-pressed={categoryFilter === name}
+                onClick={() =>
+                  setCategoryFilter(categoryFilter === name ? 'All' : name)
+                }
+              >
+                <CategoryIcon icon={meta.icon} />
+                <span>{meta.label}</span>
+                <small>{count}</small>
+              </button>
+            );
+          })}
+        </fieldset>
+      </div>
       {visibleGroups.length ? (
         <div className="tm-timeline-groups">
           {visibleGroups.map((group) => (
@@ -4123,10 +4229,7 @@ function TimelinePage({
                     task.dueLabel,
                     dayEndTime,
                   );
-                  const category = categoryMeta[task.category] ?? {
-                    icon: '🏷️',
-                    label: task.category,
-                  };
+                  const category = categoryFor(task.category);
                   const loggedWorkSessions = Math.max(
                     task.workLog?.length ?? 0,
                     task.progress && task.progress.current > 0 ? 1 : 0,
@@ -4183,8 +4286,21 @@ function TimelinePage({
       ) : (
         <div className="tm-timeline-empty">
           <TimelineIcon />
-          <h2>Nothing is on your timeline yet</h2>
-          <p>Tasks with a due date will appear here when they matter.</p>
+          <h2>
+            {plannedTasks.length
+              ? 'No tasks match this filter'
+              : 'Nothing is on your timeline yet'}
+          </h2>
+          <p>
+            {plannedTasks.length
+              ? 'Choose another category or return to all planned tasks.'
+              : 'Tasks with a due date will appear here when they matter.'}
+          </p>
+          {plannedTasks.length > 0 && (
+            <button type="button" onClick={() => setCategoryFilter('All')}>
+              Clear filter
+            </button>
+          )}
         </div>
       )}
       {deferTask && (
