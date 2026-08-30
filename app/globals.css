@@ -4679,6 +4679,89 @@ button {
 .tm-timeline-item time.today {
   color: var(--todo-accent-bright);
 }
+.tm-timeline-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.tm-timeline-defer-chip {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 8px;
+  border: 1px solid var(--todo-border);
+  border-radius: 999px;
+  background: var(--todo-surface-hover);
+  color: var(--todo-text-muted);
+  font: 600 8px var(--todo-font-mono);
+  cursor: pointer;
+}
+.tm-timeline-defer-chip svg {
+  width: 11px;
+}
+.tm-timeline-defer-chip:hover,
+.tm-timeline-defer-chip:focus-visible {
+  border-color: var(--todo-accent-border);
+  background: var(--todo-accent-soft);
+  color: var(--todo-accent-bright);
+  outline: none;
+}
+
+/* Keep every primary view on the Tasks page's shared layout grid. */
+.tm-shelf-page,
+.tm-timeline-page {
+  width: min(1315px, 100%);
+  padding-top: 0;
+}
+.tm-shelf-header,
+.tm-timeline-header {
+  min-height: 70px;
+  align-items: center;
+}
+.tm-shelf-header > .tm-page-title,
+.tm-timeline-header > .tm-page-title {
+  position: static;
+  padding-left: 0;
+}
+.tm-shelf-header > .tm-page-title > .tm-page-home,
+.tm-timeline-header > .tm-page-title > .tm-page-home {
+  position: static;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.tm-shelf-header > .tm-page-title > .tm-page-home svg,
+.tm-timeline-header > .tm-page-title > .tm-page-home svg {
+  width: 24px;
+  height: 24px;
+}
+.tm-shelf-header .tm-page-title p,
+.tm-timeline-header .tm-page-title p {
+  display: none;
+}
+.tm-shelf-header .tm-page-title h1,
+.tm-timeline-header .tm-page-title h1 {
+  color: #286bcf;
+  font: 600 23px/1 var(--todo-font-body);
+  letter-spacing: -0.02em;
+}
+.tm-shelf-header .tm-page-title small {
+  margin-top: 4px;
+}
+.tm-shelf-list,
+.tm-timeline-groups {
+  max-width: none;
+}
+.tm-app.tm-theme-dark .tm-shelf-header .tm-page-title h1,
+.tm-app.tm-theme-dark .tm-timeline-header .tm-page-title h1,
+.tm-app.tm-theme-dark .tm-shelf-header > .tm-page-title > .tm-page-home,
+.tm-app.tm-theme-dark .tm-timeline-header > .tm-page-title > .tm-page-home {
+  color: #73a5f5;
+}
 .tm-timeline-empty {
   min-height: 340px;
   display: grid;
@@ -4716,7 +4799,14 @@ button {
     padding: 11px;
   }
   .tm-timeline-item time {
+    grid-column: auto;
+  }
+  .tm-timeline-actions {
     grid-column: 2;
+    justify-content: flex-start;
+  }
+  .tm-timeline-defer-chip {
+    min-height: 24px;
   }
 }
 .tm-app.tm-theme-dark .tm-work-panel {
@@ -5879,6 +5969,59 @@ button {
 
 .tm-app .tm-mobile-add-task:active {
   transform: scale(0.96);
+}
+
+.tm-undo-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px 8px 14px;
+  border: 1px solid var(--todo-border-strong);
+  border-radius: 999px;
+  background: var(--todo-surface);
+  box-shadow: 0 12px 28px rgb(0 0 0 / 24%);
+  color: var(--todo-text);
+  font-size: 13px;
+}
+
+.tm-undo-toast button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--todo-accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tm-app.tm-theme-dark .tm-undo-toast {
+  border-color: #2a3445;
+  background: #101522;
+  color: #d7deeb;
+}
+
+@media (max-width: 560px) {
+  .tm-undo-toast {
+    top: max(12px, env(safe-area-inset-top));
+    right: 12px;
+    bottom: auto;
+    padding: 4px;
+  }
+
+  .tm-undo-toast > span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {

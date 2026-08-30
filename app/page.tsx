@@ -3855,14 +3855,16 @@ function ShelfPage({
 
   return (
     <section className="tm-shelf-page" aria-labelledby="shelf-title">
-      <header className="tm-shelf-header">
-        <div>
-          <span>
+      <header className="tm-page-header tm-shelf-header">
+        <div className="tm-page-title">
+          <span className="tm-page-home">
             <ArchiveIcon />
           </span>
-          <p>Later</p>
-          <h1 id="shelf-title">Shelf</h1>
-          <small>Tasks you’ve put aside without losing them.</small>
+          <div>
+            <p>Later</p>
+            <h1 id="shelf-title">Shelf</h1>
+            <small>Tasks you’ve put aside without losing them.</small>
+          </div>
         </div>
         {shelvedTasks.length > 0 && (
           <strong>
@@ -3953,6 +3955,7 @@ function TimelinePage({
   onChange: (tasks: Task[]) => void;
   dayEndTime: string;
 }) {
+  const [deferTask, setDeferTask] = useState<Task | null>(null);
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
   const todayKey = toDateString(today);
@@ -4016,16 +4019,27 @@ function TimelinePage({
     onChange(next);
     void taskRepository.replace(next);
   };
+  const defer = (deadline: DeferredDeadline) => {
+    if (!deferTask) return;
+    const next = tasks.map((task) =>
+      task.id === deferTask.id ? { ...task, ...deadline } : task,
+    );
+    onChange(next);
+    void taskRepository.replace(next);
+    setDeferTask(null);
+  };
 
   return (
     <section className="tm-timeline-page" aria-labelledby="timeline-title">
-      <header className="tm-timeline-header">
-        <div>
-          <span>
+      <header className="tm-page-header tm-timeline-header">
+        <div className="tm-page-title">
+          <span className="tm-page-home">
             <TimelineIcon />
           </span>
-          <p>Plan</p>
-          <h1 id="timeline-title">Timeline</h1>
+          <div>
+            <p>Plan</p>
+            <h1 id="timeline-title">Timeline</h1>
+          </div>
         </div>
         <small>
           {visibleGroups.reduce(
@@ -4079,7 +4093,17 @@ function TimelinePage({
                           {category.label}
                         </p>
                       </div>
-                      <time className={due.state}>{due.label}</time>
+                      <div className="tm-timeline-actions">
+                        <button
+                          type="button"
+                          className="tm-timeline-defer-chip"
+                          onClick={() => setDeferTask(task)}
+                        >
+                          <DeferIcon />
+                          <span>Defer</span>
+                        </button>
+                        <time className={due.state}>{due.label}</time>
+                      </div>
                     </article>
                   );
                 })}
@@ -4094,6 +4118,14 @@ function TimelinePage({
           <p>Tasks with a due date will appear here when they matter.</p>
         </div>
       )}
+      {deferTask && (
+        <DeferTaskDialog
+          row={deferTask}
+          dayEndTime={dayEndTime}
+          onDefer={defer}
+          onClose={() => setDeferTask(null)}
+        />
+      )}
     </section>
   );
 }
@@ -4102,6 +4134,8 @@ export default function Home() {
   const [view, setView] = useState<View>('tasks');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const taskHistory = useRef<Task[][]>([]);
+  const [undoCount, setUndoCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
@@ -4154,6 +4188,36 @@ export default function Home() {
     setDayEndTime(next);
     window.localStorage.setItem('caxius-todo.day-end-time.v1', next);
   };
+  const commitTasks = (next: Task[]) => {
+    taskHistory.current.push(structuredClone(tasks));
+    if (taskHistory.current.length > 50) taskHistory.current.shift();
+    setUndoCount(taskHistory.current.length);
+    setTasks(next);
+  };
+  const undoLastChange = () => {
+    const previous = taskHistory.current.pop();
+    if (!previous) return;
+    setUndoCount(taskHistory.current.length);
+    setTasks(previous);
+    void taskRepository.replace(previous);
+  };
+  useEffect(() => {
+    const handleUndoShortcut = (event: KeyboardEvent) => {
+      if ((!event.metaKey && !event.ctrlKey) || event.key.toLowerCase() !== 'z')
+        return;
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        target?.closest('input, textarea, select, [contenteditable="true"]')
+      )
+        return;
+      if (!taskHistory.current.length) return;
+      event.preventDefault();
+      undoLastChange();
+    };
+    window.addEventListener('keydown', handleUndoShortcut);
+    return () => window.removeEventListener('keydown', handleUndoShortcut);
+  });
   if (view === 'style-guide')
     return (
       <div className="app-style-route todo-style-guide">
@@ -4193,7 +4257,7 @@ export default function Home() {
         ) : view === 'tasks' ? (
           <TasksPage
             tasks={tasks}
-            onChange={setTasks}
+            onChange={commitTasks}
             theme={theme}
             onTheme={toggleTheme}
             dayEndTime={dayEndTime}
@@ -4202,19 +4266,27 @@ export default function Home() {
         ) : view === 'timeline' ? (
           <TimelinePage
             tasks={tasks}
-            onChange={setTasks}
+            onChange={commitTasks}
             dayEndTime={dayEndTime}
           />
         ) : view === 'shelf' ? (
           <ShelfPage
             tasks={tasks}
-            onChange={setTasks}
+            onChange={commitTasks}
             dayEndTime={dayEndTime}
           />
         ) : (
           <PlaceholderPage view={view} />
         )}
       </div>
+      {undoCount > 0 && (
+        <output className="tm-undo-toast" aria-live="polite">
+          <span>Last task change</span>
+          <button type="button" onClick={undoLastChange} aria-label="Undo last task change">
+            Undo
+          </button>
+        </output>
+      )}
     </main>
   );
 }
