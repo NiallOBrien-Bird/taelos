@@ -2,7 +2,12 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getSupabaseEnv, isSupabaseConfigured } from './env';
 
-const publicPaths = new Set(['/signup', '/auth/callback', '/api/auth/email']);
+const publicPaths = new Set([
+  '/signup',
+  '/offline',
+  '/auth/callback',
+  '/api/auth/email',
+]);
 
 function unauthorizedResponse(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith('/api/')) {

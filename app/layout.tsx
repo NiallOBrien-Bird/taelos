@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import localFont from 'next/font/local';
+import { ServiceWorkerRegistration } from '@/components/ServiceWorkerRegistration';
 import './globals.css';
 
 const inter = localFont({
@@ -27,15 +28,35 @@ const jetBrainsMono = localFont({
 });
 
 export const metadata: Metadata = {
+  applicationName: 'Dudu',
   title: 'Dudu — personal task manager',
   description:
     'A calm, private task manager for making progress visible one next step at a time.',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Dudu',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   interactiveWidget: 'resizes-content',
+  themeColor: '#06091a',
+  colorScheme: 'dark',
 };
 
 export default function RootLayout({
@@ -49,6 +70,7 @@ export default function RootLayout({
         className={`${inter.variable} ${outfit.variable} ${jetBrainsMono.variable} antialiased`}
       >
         {children}
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

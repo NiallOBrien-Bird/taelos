@@ -36,6 +36,86 @@ button {
   color: #fff;
 }
 
+/* Offline fallback */
+.offline-page {
+  min-height: 100svh;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(
+      circle at 50% 20%,
+      rgba(46, 158, 255, 0.14),
+      transparent 38%
+    ),
+    #06091a;
+}
+.offline-card {
+  width: min(440px, 100%);
+  padding: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  background: rgba(10, 16, 40, 0.82);
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.28);
+  text-align: center;
+}
+.offline-mark {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 24px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  transform: rotate(45deg);
+}
+.offline-mark span {
+  border-radius: 5px;
+  background: #2e9eff;
+}
+.offline-mark span:nth-child(2),
+.offline-mark span:nth-child(3) {
+  background: #0c79d8;
+}
+.offline-mark span:nth-child(4) {
+  background: #68c4ff;
+}
+.offline-kicker {
+  margin: 0 0 10px !important;
+  color: #68c4ff !important;
+  font:
+    650 10px var(--font-jetbrains-mono),
+    monospace;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.offline-card h1 {
+  margin: 0;
+  color: #f8fbff;
+  font:
+    690 40px/1.05 var(--font-outfit),
+    sans-serif;
+  letter-spacing: -0.04em;
+}
+.offline-card > p:not(.offline-kicker) {
+  margin: 18px 0 28px;
+  color: #9aa8c2;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.offline-card a {
+  min-height: 42px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #2e9eff;
+  color: #04101f;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* Authentication */
 .auth-page {
   min-height: 100vh;
