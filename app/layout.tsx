@@ -1,20 +1,29 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter, JetBrains_Mono, Outfit } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 
-const inter = Inter({
+const inter = localFont({
+  src: './fonts/inter-latin.woff2',
   variable: '--font-inter',
-  subsets: ['latin'],
+  weight: '100 900',
+  style: 'normal',
+  display: 'swap',
 });
 
-const outfit = Outfit({
+const outfit = localFont({
+  src: './fonts/outfit-latin.woff2',
   variable: '--font-outfit',
-  subsets: ['latin'],
+  weight: '100 900',
+  style: 'normal',
+  display: 'swap',
 });
 
-const jetBrainsMono = JetBrains_Mono({
+const jetBrainsMono = localFont({
+  src: './fonts/jetbrains-mono-latin.woff2',
   variable: '--font-jetbrains',
-  subsets: ['latin'],
+  weight: '100 800',
+  style: 'normal',
+  display: 'swap',
 });
 
 export const metadata: Metadata = {

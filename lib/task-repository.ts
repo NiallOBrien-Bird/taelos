@@ -1,5 +1,6 @@
 import seedTasks from './tasks.seed.json';
 import { createClient } from './supabase/client';
+import { isSupabaseConfigured } from './supabase/env';
 
 export type ProgressUnit = string;
 
@@ -119,25 +120,56 @@ export class SupabaseTaskRepository implements TaskRepository {
 
 export class LocalTaskRepository implements TaskRepository {
   async list(): Promise<Task[]> {
-    throw new Error(
-      'Local task storage has been retired. Sign in to use Dudu.',
-    );
+    if (typeof window === 'undefined') return cloneSeed();
+
+    const saved = window.localStorage.getItem('dudu.tasks.v1');
+    if (!saved) return cloneSeed();
+
+    try {
+      const parsed: unknown = JSON.parse(saved);
+      return isTaskArray(parsed) ? parsed : cloneSeed();
+    } catch {
+      return cloneSeed();
+    }
   }
 
-  async replace(_tasks: Task[]): Promise<void> {
-    throw new Error(
-      'Local task storage has been retired. Sign in to use Dudu.',
-    );
+  async replace(tasks: Task[]): Promise<void> {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem('dudu.tasks.v1', JSON.stringify(tasks));
   }
 
   async reset(): Promise<Task[]> {
-    throw new Error(
-      'Local task storage has been retired. Sign in to use Dudu.',
-    );
+    const tasks = cloneSeed();
+    await this.replace(tasks);
+    return tasks;
   }
 }
 
-export const taskRepository: TaskRepository = new SupabaseTaskRepository();
+class AuthAwareTaskRepository implements TaskRepository {
+  private readonly local = new LocalTaskRepository();
+  private readonly supabase = new SupabaseTaskRepository();
+
+  private async active(): Promise<TaskRepository> {
+    if (!isSupabaseConfigured()) return this.local;
+
+    const { data } = await createClient().auth.getUser();
+    return data.user ? this.supabase : this.local;
+  }
+
+  async list(): Promise<Task[]> {
+    return (await this.active()).list();
+  }
+
+  async replace(tasks: Task[]): Promise<void> {
+    return (await this.active()).replace(tasks);
+  }
+
+  async reset(): Promise<Task[]> {
+    return (await this.active()).reset();
+  }
+}
+
+export const taskRepository: TaskRepository = new AuthAwareTaskRepository();
 
 export function getSubtaskProgress(subtask: Subtask): number {
   return subtask.completed ? 1 : 0;

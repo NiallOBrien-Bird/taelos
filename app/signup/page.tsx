@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type SyntheticEvent } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, LockKeyholeIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 
@@ -20,61 +20,71 @@ export default function SignupPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    setError(params.get('error') ?? '');
     if (!configured) return;
-    void createClient()
-      .auth.getUser()
-      .then(({ data }) => {
-        if (data.user) router.replace('/');
-      });
+    void (async () => {
+      const { data } = await createClient().auth.getUser();
+      if (data.user) router.replace('/');
+    })();
   }, [configured, router]);
 
   const callbackUrl = () => `${window.location.origin}/auth/callback?next=/`;
 
-  const submit = async (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!configured) return;
     setBusy(true);
     setError('');
     setMessage('');
 
-    const supabase = createClient();
-    if (mode === 'signup') {
-      const { data, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: callbackUrl(),
-        },
+    try {
+      const authResponse = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, mode }),
       });
-      if (signUpError) setError(signUpError.message);
-      else if (data.session) router.replace('/');
-      else
+      const responseBody = await authResponse.text();
+      let result: { error?: string } = {};
+
+      try {
+        result = JSON.parse(responseBody) as { error?: string };
+      } catch {
+        if (!authResponse.ok) {
+          setError('The sign-in service returned an unexpected response. Please try again.');
+          return;
+        }
+      }
+
+      if (!authResponse.ok) {
+        setError(result.error ?? 'Could not complete your request. Please try again.');
+      } else if (mode === 'signup') {
         setMessage(
           'Check your email to confirm your account, then you can start using Dudu.',
         );
-    } else {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (signInError) setError(signInError.message);
-      else router.replace('/');
+      } else {
+        router.replace('/');
+      }
+    } catch {
+      setError('Could not reach the sign-in service. Please try again.');
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   };
 
   const continueWith = async (provider: 'google' | 'github') => {
     if (!configured) return;
     setBusy(true);
     setError('');
-    const { error: oauthError } = await createClient().auth.signInWithOAuth({
-      provider,
-      options: { redirectTo: callbackUrl() },
-    });
-    if (oauthError) {
-      setError(oauthError.message);
+    try {
+      const { error: oauthError } = await createClient().auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: callbackUrl() },
+      });
+      if (oauthError) {
+        setError(oauthError.message);
+        setBusy(false);
+      }
+    } catch {
+      setError('Could not reach the sign-in service. Please try again.');
       setBusy(false);
     }
   };
@@ -82,12 +92,12 @@ export default function SignupPage() {
   return (
     <main className="auth-page">
       <section className="auth-story" aria-labelledby="auth-story-title">
-        <a className="auth-brand" href="/signup" aria-label="Dudu home">
+        <Link className="auth-brand" href="/signup" aria-label="Dudu home">
           <span>
             <CheckIcon />
           </span>
           <strong>Dudu</strong>
-        </a>
+        </Link>
         <div className="auth-story-copy">
           <p className="auth-kicker">A quieter way to make progress</p>
           <h1 id="auth-story-title">Give every task a clear next step.</h1>
@@ -122,6 +132,7 @@ export default function SignupPage() {
           </div>
           <div className="auth-tabs" role="tablist" aria-label="Account access">
             <button
+              type="button"
               role="tab"
               aria-selected={mode === 'signup'}
               className={mode === 'signup' ? 'active' : ''}
@@ -130,6 +141,7 @@ export default function SignupPage() {
               Create account
             </button>
             <button
+              type="button"
               role="tab"
               aria-selected={mode === 'login'}
               className={mode === 'login' ? 'active' : ''}
@@ -154,29 +166,27 @@ export default function SignupPage() {
           </header>
 
           {!configured && (
-            <div className="auth-notice" role="status">
+            <output className="auth-notice">
               The app is ready. Connect the Supabase project to enable account
               creation.
-            </div>
+            </output>
           )}
 
           <div className="auth-socials">
-            <Button
+            <button
               type="button"
-              variant="outline"
               disabled={busy || !configured}
               onClick={() => void continueWith('google')}
             >
               <span className="auth-google">G</span> Continue with Google
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="outline"
               disabled={busy || !configured}
               onClick={() => void continueWith('github')}
             >
               <span className="auth-github">GH</span> Continue with GitHub
-            </Button>
+            </button>
           </div>
 
           <div className="auth-divider">
@@ -216,12 +226,8 @@ export default function SignupPage() {
                 {error}
               </p>
             )}
-            {message && (
-              <p className="auth-success" role="status">
-                {message}
-              </p>
-            )}
-            <Button
+            {message && <output className="auth-success">{message}</output>}
+            <button
               className="auth-submit"
               type="submit"
               disabled={busy || !configured}
@@ -232,7 +238,7 @@ export default function SignupPage() {
                   ? 'Create my account'
                   : 'Sign in'}
               {!busy && <ArrowRightIcon />}
-            </Button>
+            </button>
           </form>
 
           <p className="auth-terms">
