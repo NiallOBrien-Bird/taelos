@@ -5,7 +5,6 @@ import {
   useRef,
   useState,
   type CSSProperties,
-  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -139,12 +138,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  NativeSelect,
+  NativeSelectOption,
+} from '@/components/ui/native-select';
 import { SignOutButton } from '@/components/SignOutButton';
 
 type View =
@@ -2346,19 +2342,20 @@ function ChipAwayDialog({
           {!isConfigured && (
             <label className="tm-work-dialog-field">
               <span>What unit should measure this work?</span>
-              <select
+              <NativeSelect
+                className="tm-native-select"
                 name="unit"
                 value={unitChoice}
                 onChange={(event) => setUnitChoice(event.target.value)}
                 autoFocus
               >
                 {progressUnits.map((option) => (
-                  <option key={option.value} value={option.value}>
+                  <NativeSelectOption key={option.value} value={option.value}>
                     {option.label} — {option.example}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-                <option value="custom">Custom unit…</option>
-              </select>
+                <NativeSelectOption value="custom">Custom unit…</NativeSelectOption>
+              </NativeSelect>
               {unitChoice === 'custom' && (
                 <input
                   name="customUnit"
@@ -2652,38 +2649,18 @@ function TaskEditDialog({
           </div>
           <div className="tm-edit-dialog-field">
             <span>Category</span>
-            <Select
+            <NativeSelect
+              className="tm-native-select"
               value={category}
-              onValueChange={(value) => {
-                if (value) setCategory(value);
-              }}
+              onChange={(event) => setCategory(event.target.value)}
+              aria-label="Task category"
             >
-              <SelectTrigger
-                className="tm-category-select-trigger"
-                aria-label="Task category"
-              >
-                <span className="tm-category-select-value">
-                  <CategoryIcon icon={categories[category]?.icon ?? category} />
-                  <SelectValue />
-                </span>
-              </SelectTrigger>
-              <SelectContent
-                className="tm-category-select-content"
-                align="start"
-                sideOffset={6}
-              >
-                {Object.entries(categories).map(([name, meta]) => (
-                  <SelectItem
-                    key={name}
-                    value={name}
-                    className="tm-category-select-item"
-                  >
-                    <CategoryIcon icon={meta.icon} />
-                    <span>{meta.label}</span>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {Object.entries(categories).map(([name, meta]) => (
+                <NativeSelectOption key={name} value={name}>
+                  {meta.label}
+                </NativeSelectOption>
+              ))}
+            </NativeSelect>
           </div>
           <div className="tm-edit-dialog-actions">
             <button type="button" onClick={onClose}>
@@ -3300,15 +3277,8 @@ function TasksPage({
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileKeyboardInset, setMobileKeyboardInset] = useState(0);
   const mobileTaskInputRef = useRef<HTMLInputElement>(null);
-  const [iconPickerOpen, setIconPickerOpen] = useState(false);
-  const [iconSearch, setIconSearch] = useState('');
-  const [showAllIconOptions, setShowAllIconOptions] = useState(false);
   const [categoryName, setCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
-  const firstIconOptionRef = useRef<HTMLButtonElement>(null);
-  const iconPickerRef = useRef<HTMLDivElement>(null);
-  const iconSearchInputRef = useRef<HTMLInputElement>(null);
-  const shouldFocusFirstSuggestedIcon = useRef(false);
   const [categoryContextMenu, setCategoryContextMenu] = useState<{
     name: string;
     x: number;
@@ -3422,91 +3392,7 @@ function TasksPage({
   const openCategoryDialog = () => {
     setSelectedIcon(null);
     setCategoryName('');
-    setIconSearch('');
-    setShowAllIconOptions(false);
-    setIconPickerOpen(false);
     setCategoryDialogOpen(true);
-  };
-  const nameTerms = categoryName
-    .toLowerCase()
-    .split(/[^a-z]+/)
-    .filter(Boolean);
-  const matchesTerms = (
-    option: (typeof categoryIconOptions)[number],
-    terms: string[],
-  ) =>
-    terms.some((term) =>
-      [option.name, ...option.keywords].some(
-        (keyword) =>
-          keyword.toLowerCase().includes(term) ||
-          term.includes(keyword.toLowerCase()),
-      ),
-    );
-  const suggestedIcons = nameTerms.length
-    ? categoryIconOptions
-        .filter((option) => matchesTerms(option, nameTerms))
-        .slice(0, 8)
-    : [];
-  const matchingIcons = iconSearch.trim()
-    ? categoryIconOptions.filter((option) =>
-        matchesTerms(option, [iconSearch.trim().toLowerCase()]),
-      )
-    : categoryIconOptions;
-  const visibleIcons =
-    iconSearch.trim() || showAllIconOptions || !categoryName.trim()
-      ? matchingIcons
-      : suggestedIcons;
-  useEffect(() => {
-    if (!iconPickerOpen || !shouldFocusFirstSuggestedIcon.current) return;
-    firstIconOptionRef.current?.focus();
-    shouldFocusFirstSuggestedIcon.current = false;
-  }, [iconPickerOpen, visibleIcons]);
-  const moveIconPickerFocus = (direction: 1 | -1) => {
-    const options = Array.from(
-      iconPickerRef.current?.querySelectorAll<HTMLButtonElement>(
-        '.tm-icon-picker-options button',
-      ) ?? [],
-    );
-    if (!options.length) return;
-    const currentIndex = options.indexOf(
-      document.activeElement as HTMLButtonElement,
-    );
-    const nextIndex =
-      currentIndex === -1
-        ? direction === 1
-          ? 0
-          : options.length - 1
-        : Math.max(0, Math.min(options.length - 1, currentIndex + direction));
-    options[nextIndex]?.focus();
-  };
-  const handleIconPickerKeyDown = (
-    event: ReactKeyboardEvent<HTMLInputElement | HTMLButtonElement>,
-  ) => {
-    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
-      event.preventDefault();
-      moveIconPickerFocus(event.key === 'ArrowDown' ? 1 : -1);
-      return;
-    }
-    if (
-      event.currentTarget instanceof HTMLInputElement &&
-      event.key === 'Backspace' &&
-      !event.currentTarget.value
-    ) {
-      setShowAllIconOptions(false);
-      return;
-    }
-    if (
-      event.currentTarget instanceof HTMLButtonElement &&
-      event.key.length === 1 &&
-      !event.metaKey &&
-      !event.ctrlKey &&
-      !event.altKey
-    ) {
-      event.preventDefault();
-      setIconSearch((current) => current + event.key);
-      setShowAllIconOptions(false);
-      iconSearchInputRef.current?.focus();
-    }
   };
   const createTask = (value: QuickAddValue) => {
     const subtasks: Subtask[] = value.subtasks.map((subtask) => ({
@@ -3694,18 +3580,7 @@ function TasksPage({
               <input
                 name="label"
                 value={categoryName}
-                onChange={(event) => {
-                  setCategoryName(event.target.value);
-                  setShowAllIconOptions(false);
-                }}
-                onKeyDown={(event) => {
-                  if (event.key !== 'Enter') return;
-                  event.preventDefault();
-                  setIconSearch('');
-                  setShowAllIconOptions(false);
-                  shouldFocusFirstSuggestedIcon.current = true;
-                  setIconPickerOpen(true);
-                }}
+                onChange={(event) => setCategoryName(event.target.value)}
                 placeholder="e.g. Health"
                 maxLength={32}
               />
@@ -3714,87 +3589,23 @@ function TasksPage({
               <span>
                 Icon <em>(required)</em>
               </span>
-              <button
-                type="button"
-                className="tm-icon-picker-trigger"
-                aria-haspopup="listbox"
-                aria-expanded={iconPickerOpen}
-                data-invalid={!selectedIcon}
-                onClick={() => setIconPickerOpen((open) => !open)}
+              <NativeSelect
+                className="tm-native-select tm-icon-native-select"
+                value={selectedIcon ?? ''}
+                onChange={(event) => setSelectedIcon(event.target.value || null)}
+                aria-label="Category icon"
+                aria-invalid={!selectedIcon}
+                required
               >
-                {selectedIcon && <CategoryIcon icon={selectedIcon} />}
-                <span>
-                  {categoryIconById.get(selectedIcon ?? '')?.name ??
-                    'Choose an icon'}
-                </span>
-                <ChevronIcon direction="down" />
-              </button>
-              {iconPickerOpen && (
-                <div
-                  ref={iconPickerRef}
-                  className="tm-icon-picker"
-                  aria-label="Choose a category icon"
-                >
-                  <input
-                    ref={iconSearchInputRef}
-                    aria-label="Search icons"
-                    value={iconSearch}
-                    onChange={(event) => {
-                      const value = event.target.value;
-                      setIconSearch(value);
-                      if (!value) setShowAllIconOptions(false);
-                    }}
-                    onKeyDown={handleIconPickerKeyDown}
-                    placeholder="Search icons"
-                  />
-                  <div
-                    className="tm-icon-picker-options"
-                    aria-label="Available icons"
-                  >
-                    {!iconSearch && suggestedIcons.length > 0 && (
-                      <p className="tm-icon-picker-suggestion">
-                        Suggested for “{categoryName}”
-                      </p>
-                    )}
-                    {visibleIcons.length ? (
-                      visibleIcons.map(({ id, name }, index) => (
-                        <button
-                          key={id}
-                          ref={(element) => {
-                            if (index === 0)
-                              firstIconOptionRef.current = element;
-                          }}
-                          type="button"
-                          aria-pressed={selectedIcon === id}
-                          title={name}
-                          onKeyDown={handleIconPickerKeyDown}
-                          onClick={() => {
-                            setSelectedIcon(id);
-                            setIconPickerOpen(false);
-                            setIconSearch('');
-                          }}
-                        >
-                          <CategoryIcon icon={id} />
-                          <span>{name}</span>
-                        </button>
-                      ))
-                    ) : (
-                      <p>No icons found.</p>
-                    )}
-                  </div>
-                  {!iconSearch &&
-                    categoryName.trim() &&
-                    !showAllIconOptions && (
-                      <button
-                        type="button"
-                        className="tm-icon-picker-browse"
-                        onClick={() => setShowAllIconOptions(true)}
-                      >
-                        Browse all {categoryIconOptions.length} icons
-                      </button>
-                    )}
-                </div>
-              )}
+                <NativeSelectOption value="" disabled>
+                  Choose an icon
+                </NativeSelectOption>
+                {categoryIconOptions.map(({ id, name }) => (
+                  <NativeSelectOption key={id} value={id}>
+                    {name}
+                  </NativeSelectOption>
+                ))}
+              </NativeSelect>
             </div>
             <div className="tm-category-dialog-actions">
               <button

@@ -10,6 +10,10 @@ import {
   type Ref,
   type SelectHTMLAttributes,
 } from 'react';
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from '@/components/ui/native-select';
 import { formatDeadlineResolution, parseHumanDeadline } from '@/lib/human-deadline';
 import {
   Dialog,
@@ -161,7 +165,8 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   },
 );
 
-export interface SelectFieldProps extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectFieldProps
+  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
   label?: string;
   hint?: string;
   error?: string;
@@ -177,22 +182,19 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
     const fieldId = id ?? generatedId;
     return (
       <FieldShell label={label} hint={hint} error={error} htmlFor={fieldId}>
-        <div className="sg-select-wrap">
-          <select
-            ref={ref}
-            id={fieldId}
-            className={`sg-input sg-select ${className}`}
-            aria-invalid={Boolean(error)}
-            {...props}
-          >
-            {options.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <ChevronDownIcon />
-        </div>
+        <NativeSelect
+          className={`sg-select-wrap ${className}`}
+          ref={ref}
+          id={fieldId}
+          aria-invalid={Boolean(error)}
+          {...props}
+        >
+          {options.map((option) => (
+            <NativeSelectOption key={option.value} value={option.value}>
+              {option.label}
+            </NativeSelectOption>
+          ))}
+        </NativeSelect>
       </FieldShell>
     );
   },
@@ -514,14 +516,14 @@ export function QuickAddBar({
           aria-label="Task title"
           placeholder="Add a task…"
         />
-        <select
-          className="sg-quick-category"
+        <NativeSelect
+          className="sg-quick-category-wrap"
           value={category}
           onChange={(event) => setCategory(event.target.value)}
           aria-label="Task category"
         >
-          {categories.map((value) => <option key={value} value={value}>{value}</option>)}
-        </select>
+          {categories.map((value) => <NativeSelectOption key={value} value={value}>{value}</NativeSelectOption>)}
+        </NativeSelect>
         {title && <span className="sg-enter-hint">Enter ↵</span>}
       </div>
       {expanded && (
