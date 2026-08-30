@@ -18,9 +18,9 @@ const jetBrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Still — personal task manager',
+  title: 'Dudu — personal task manager',
   description:
-    'A calm personal task manager for making progress visible, one next step at a time.',
+    'A calm, private task manager for making progress visible one next step at a time.',
 };
 
 export const viewport: Viewport = {

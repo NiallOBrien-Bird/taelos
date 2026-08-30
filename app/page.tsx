@@ -145,6 +145,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { SignOutButton } from '@/components/SignOutButton';
 
 type View =
   | 'tasks'
@@ -1401,7 +1402,7 @@ function dueDisplay(
       label: time ? `Overdue · ${time}` : 'Overdue',
       state: 'overdue',
       tooltip,
-  } as const;
+    } as const;
   if (dueDate === today && dueTime) {
     if (dueInstant(dueDate, dueTime, dayEndTime) < now) {
       return { label: `Overdue · ${time}`, state: 'overdue', tooltip } as const;
@@ -1455,8 +1456,12 @@ function DayBoundarySettings({
   return (
     <Dialog>
       <DialogTrigger className="tm-settings-trigger" aria-label="Open settings">
-        <span className="tm-settings-trigger-desktop"><Settings2Icon /></span>
-        <span className="tm-settings-trigger-mobile"><MoreIcon /></span>
+        <span className="tm-settings-trigger-desktop">
+          <Settings2Icon />
+        </span>
+        <span className="tm-settings-trigger-mobile">
+          <MoreIcon />
+        </span>
         <span>Settings</span>
       </DialogTrigger>
       <DialogContent className="tm-settings-dialog">
@@ -1464,10 +1469,14 @@ function DayBoundarySettings({
           <WorkDonePanel tasks={tasks} dayEndTime={dayEndTime} />
         </div>
         <DialogHeader className="tm-settings-heading">
-          <span className="tm-settings-icon"><Settings2Icon /></span>
+          <span className="tm-settings-icon">
+            <Settings2Icon />
+          </span>
           <div>
             <DialogTitle>Settings</DialogTitle>
-            <DialogDescription>Shape the app around the way your day actually works.</DialogDescription>
+            <DialogDescription>
+              Shape the app around the way your day actually works.
+            </DialogDescription>
           </div>
         </DialogHeader>
         <section className="tm-theme-setting" aria-labelledby="theme-label">
@@ -1485,10 +1494,18 @@ function DayBoundarySettings({
             <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
           </button>
         </section>
-        <section className="tm-day-boundary-setting" aria-labelledby="day-boundary-label">
+        <section
+          className="tm-day-boundary-setting"
+          aria-labelledby="day-boundary-label"
+        >
           <div>
-            <label id="day-boundary-label" htmlFor="day-end-time">Your day ends at</label>
-            <p>Until then, late-night work and unfinished tasks stay in the previous day.</p>
+            <label id="day-boundary-label" htmlFor="day-end-time">
+              Your day ends at
+            </label>
+            <p>
+              Until then, late-night work and unfinished tasks stay in the
+              previous day.
+            </p>
           </div>
           <input
             id="day-end-time"
@@ -1497,7 +1514,10 @@ function DayBoundarySettings({
             onChange={(event) => onDayEndTimeChange(event.target.value)}
           />
         </section>
-        <div className="tm-day-boundary-presets" aria-label="Common day end times">
+        <div
+          className="tm-day-boundary-presets"
+          aria-label="Common day end times"
+        >
           {[
             { value: '00:00', label: 'Midnight' },
             { value: '02:00', label: '2 AM' },
@@ -1562,11 +1582,7 @@ function Navigation({
   onView: (view: View) => void;
   onCollapsedChange: (collapsed: boolean) => void;
 }) {
-  const mobileViews: View[] = [
-    'tasks',
-    'timeline',
-    'shelf',
-  ];
+  const mobileViews: View[] = ['tasks', 'timeline', 'shelf'];
   return (
     <>
       <aside className={`tm-sidebar${collapsed ? ' is-collapsed' : ''}`}>
@@ -1576,7 +1592,7 @@ function Navigation({
           onClick={() => onView('tasks')}
         >
           <BrandMark />
-          <span>Task Manager</span>
+          <span>Dudu</span>
         </button>
         <button
           className="tm-sidebar-toggle"
@@ -1606,6 +1622,7 @@ function Navigation({
             </button>
           ))}
         </nav>
+        <SignOutButton />
       </aside>
 
       <nav className="app-mobile-nav" aria-label="Primary mobile navigation">
@@ -1644,7 +1661,9 @@ type DeferredDeadline = Pick<RowData, 'dueDate' | 'dueTime' | 'dueLabel'>;
 
 function deferredBaseDate(row: RowData, dayEndTime: string) {
   const today = getDayKey(new Date(), dayEndTime);
-  return new Date(`${row.dueDate && row.dueDate > today ? row.dueDate : today}T12:00:00`);
+  return new Date(
+    `${row.dueDate && row.dueDate > today ? row.dueDate : today}T12:00:00`,
+  );
 }
 
 function deferByDays(
@@ -1766,7 +1785,12 @@ function DeferTaskDialog({
   const [exactTime, setExactTime] = useState(row.dueTime ?? '');
   const [naturalLanguageDate, setNaturalLanguageDate] = useState('');
   const [naturalLanguageTouched, setNaturalLanguageTouched] = useState(false);
-  const currentDue = dueDisplay(row.dueDate, row.dueTime, row.dueLabel, dayEndTime);
+  const currentDue = dueDisplay(
+    row.dueDate,
+    row.dueTime,
+    row.dueLabel,
+    dayEndTime,
+  );
   const resolvedNaturalLanguageDate = naturalLanguageDate
     ? parseHumanDeadline(naturalLanguageDate, new Date(), dayEndTime)
     : undefined;
@@ -1841,16 +1865,24 @@ function DeferTaskDialog({
       >
         <div className="tm-defer-dialog-content">
           <div className="tm-defer-dialog-heading">
-            <span className="tm-defer-dialog-icon"><DeferIcon /></span>
+            <span className="tm-defer-dialog-icon">
+              <DeferIcon />
+            </span>
             <div>
               <strong id={`defer-dialog-title-${row.id}`}>Defer task</strong>
               <span>{row.title}</span>
             </div>
-            <button type="button" onClick={onClose} aria-label="Close defer dialog">
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close defer dialog"
+            >
               <CloseIcon />
             </button>
           </div>
-          <p className="tm-defer-current">Currently due <strong>{currentDue.label}</strong></p>
+          <p className="tm-defer-current">
+            Currently due <strong>{currentDue.label}</strong>
+          </p>
           <form
             className="tm-defer-natural-language"
             onSubmit={(event) => {
@@ -1858,8 +1890,12 @@ function DeferTaskDialog({
               deferToNaturalLanguageDate();
             }}
           >
-            <label htmlFor={`defer-natural-date-${row.id}`}>When should this happen instead?</label>
-            <div className={`tm-defer-natural-language-input${naturalLanguageTouched && naturalLanguageDate && !resolvedNaturalLanguageDate ? ' invalid' : ''}`}>
+            <label htmlFor={`defer-natural-date-${row.id}`}>
+              When should this happen instead?
+            </label>
+            <div
+              className={`tm-defer-natural-language-input${naturalLanguageTouched && naturalLanguageDate && !resolvedNaturalLanguageDate ? ' invalid' : ''}`}
+            >
               <CalendarIcon />
               <input
                 id={`defer-natural-date-${row.id}`}
@@ -1870,7 +1906,11 @@ function DeferTaskDialog({
                 }}
                 placeholder="Next Tuesday at 3pm"
                 aria-describedby={`defer-natural-date-help-${row.id}`}
-                aria-invalid={naturalLanguageTouched && !!naturalLanguageDate && !resolvedNaturalLanguageDate}
+                aria-invalid={
+                  naturalLanguageTouched &&
+                  !!naturalLanguageDate &&
+                  !resolvedNaturalLanguageDate
+                }
               />
               {naturalLanguageDate && (
                 <button
@@ -1885,15 +1925,28 @@ function DeferTaskDialog({
                 </button>
               )}
             </div>
-            <div className="tm-defer-natural-language-footer" id={`defer-natural-date-help-${row.id}`} aria-live="polite">
+            <div
+              className="tm-defer-natural-language-footer"
+              id={`defer-natural-date-help-${row.id}`}
+              aria-live="polite"
+            >
               {resolvedNaturalLanguageDate ? (
-                <span>Move to <strong>{formatDeadlineResolution(resolvedNaturalLanguageDate)}</strong></span>
+                <span>
+                  Move to{' '}
+                  <strong>
+                    {formatDeadlineResolution(resolvedNaturalLanguageDate)}
+                  </strong>
+                </span>
               ) : naturalLanguageTouched && naturalLanguageDate ? (
                 <span>Try “tomorrow at 9am” or “next Friday afternoon”.</span>
               ) : (
-                <span>Use plain language, like “in 3 days” or “next weekend”.</span>
+                <span>
+                  Use plain language, like “in 3 days” or “next weekend”.
+                </span>
               )}
-              <button type="submit" disabled={!resolvedNaturalLanguageDate}>Defer</button>
+              <button type="submit" disabled={!resolvedNaturalLanguageDate}>
+                Defer
+              </button>
             </div>
           </form>
           <div className="tm-defer-options" aria-label="Defer by a set amount">
@@ -1903,8 +1956,16 @@ function DeferTaskDialog({
                 type="button"
                 onClick={() => onDefer(option.deadline)}
               >
-                <span><strong>{option.title}</strong><small>{option.detail}</small></span>
-                <time>{formatDeadlineResolution({ date: option.deadline.dueDate!, time: option.deadline.dueTime })}</time>
+                <span>
+                  <strong>{option.title}</strong>
+                  <small>{option.detail}</small>
+                </span>
+                <time>
+                  {formatDeadlineResolution({
+                    date: option.deadline.dueDate!,
+                    time: option.deadline.dueTime,
+                  })}
+                </time>
               </button>
             ))}
           </div>
@@ -1921,12 +1982,33 @@ function DeferTaskDialog({
             </button>
             {exactDateOpen && (
               <div className="tm-defer-exact-fields">
-                <label>Date<input type="date" value={exactDate} onChange={(event) => setExactDate(event.target.value)} /></label>
-                <label>Time <span>optional</span><input type="time" value={exactTime} onChange={(event) => setExactTime(event.target.value)} disabled={!exactDate} /></label>
+                <label>
+                  Date
+                  <input
+                    type="date"
+                    value={exactDate}
+                    onChange={(event) => setExactDate(event.target.value)}
+                  />
+                </label>
+                <label>
+                  Time <span>optional</span>
+                  <input
+                    type="time"
+                    value={exactTime}
+                    onChange={(event) => setExactTime(event.target.value)}
+                    disabled={!exactDate}
+                  />
+                </label>
                 <button
                   type="button"
                   disabled={!exactDate}
-                  onClick={() => onDefer({ dueDate: exactDate, dueTime: exactTime || undefined, dueLabel: 'Exact date' })}
+                  onClick={() =>
+                    onDefer({
+                      dueDate: exactDate,
+                      dueTime: exactTime || undefined,
+                      dueLabel: 'Exact date',
+                    })
+                  }
                 >
                   Defer to this date
                 </button>
@@ -1934,7 +2016,9 @@ function DeferTaskDialog({
             )}
           </div>
           <div className="tm-defer-dialog-actions">
-            <button type="button" onClick={onClose}>Cancel</button>
+            <button type="button" onClick={onClose}>
+              Cancel
+            </button>
           </div>
         </div>
       </dialog>
@@ -2561,9 +2645,7 @@ function TaskEditDialog({
                 aria-label="Task category"
               >
                 <span className="tm-category-select-value">
-                  <CategoryIcon
-                    icon={categories[category]?.icon ?? category}
-                  />
+                  <CategoryIcon icon={categories[category]?.icon ?? category} />
                   <SelectValue />
                 </span>
               </SelectTrigger>
@@ -2713,7 +2795,10 @@ function TaskTable({
                     setDeferState({
                       row: parentRow,
                       apply: (deadline) =>
-                        updateTask(task.id, (item) => ({ ...item, ...deadline })),
+                        updateTask(task.id, (item) => ({
+                          ...item,
+                          ...deadline,
+                        })),
                     })
                   }
                   onEdit={() =>
@@ -3215,7 +3300,10 @@ function TasksPage({
       cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         setMobileKeyboardInset(
-          Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop),
+          Math.max(
+            0,
+            window.innerHeight - viewport.height - viewport.offsetTop,
+          ),
         );
       });
     };
@@ -3344,7 +3432,9 @@ function TasksPage({
       ) ?? [],
     );
     if (!options.length) return;
-    const currentIndex = options.indexOf(document.activeElement as HTMLButtonElement);
+    const currentIndex = options.indexOf(
+      document.activeElement as HTMLButtonElement,
+    );
     const nextIndex =
       currentIndex === -1
         ? direction === 1
@@ -3588,7 +3678,9 @@ function TasksPage({
               />
             </label>
             <div className="tm-category-icon-field">
-              <span>Icon <em>(required)</em></span>
+              <span>
+                Icon <em>(required)</em>
+              </span>
               <button
                 type="button"
                 className="tm-icon-picker-trigger"
@@ -3598,7 +3690,10 @@ function TasksPage({
                 onClick={() => setIconPickerOpen((open) => !open)}
               >
                 {selectedIcon && <CategoryIcon icon={selectedIcon} />}
-                <span>{categoryIconById.get(selectedIcon ?? '')?.name ?? 'Choose an icon'}</span>
+                <span>
+                  {categoryIconById.get(selectedIcon ?? '')?.name ??
+                    'Choose an icon'}
+                </span>
                 <ChevronIcon direction="down" />
               </button>
               {iconPickerOpen && (
@@ -3633,7 +3728,8 @@ function TasksPage({
                         <button
                           key={id}
                           ref={(element) => {
-                            if (index === 0) firstIconOptionRef.current = element;
+                            if (index === 0)
+                              firstIconOptionRef.current = element;
                           }}
                           type="button"
                           aria-pressed={selectedIcon === id}
@@ -3674,7 +3770,10 @@ function TasksPage({
               >
                 Cancel
               </button>
-              <button type="submit" disabled={!categoryName.trim() || !selectedIcon}>
+              <button
+                type="submit"
+                disabled={!categoryName.trim() || !selectedIcon}
+              >
                 Add category
               </button>
             </div>
@@ -3758,7 +3857,9 @@ function ShelfPage({
     <section className="tm-shelf-page" aria-labelledby="shelf-title">
       <header className="tm-shelf-header">
         <div>
-          <span><ArchiveIcon /></span>
+          <span>
+            <ArchiveIcon />
+          </span>
           <p>Later</p>
           <h1 id="shelf-title">Shelf</h1>
           <small>Tasks you’ve put aside without losing them.</small>
@@ -3826,7 +3927,10 @@ function ShelfPage({
         <div className="tm-shelf-empty">
           <ArchiveIcon />
           <h2>Your shelf is clear</h2>
-          <p>Set tasks aside from the task list whenever you need more room to focus.</p>
+          <p>
+            Set tasks aside from the task list whenever you need more room to
+            focus.
+          </p>
         </div>
       )}
     </section>
@@ -3864,10 +3968,13 @@ function TimelinePage({
 
   const groups: TimelineGroup[] = [
     { id: 'earlier', label: 'Earlier', tasks: [] },
-    { id: 'today', label: 'Today', description: 'What needs your attention now', tasks: [] },
-    ...(isWeekend
-      ? [{ id: 'weekend', label: 'This weekend', tasks: [] }]
-      : []),
+    {
+      id: 'today',
+      label: 'Today',
+      description: 'What needs your attention now',
+      tasks: [],
+    },
+    ...(isWeekend ? [{ id: 'weekend', label: 'This weekend', tasks: [] }] : []),
     { id: 'few-days', label: 'Next few days', tasks: [] },
     { id: 'this-week', label: 'This week', tasks: [] },
     { id: 'next-week', label: 'Next week', tasks: [] },
@@ -3914,16 +4021,28 @@ function TimelinePage({
     <section className="tm-timeline-page" aria-labelledby="timeline-title">
       <header className="tm-timeline-header">
         <div>
-          <span><TimelineIcon /></span>
+          <span>
+            <TimelineIcon />
+          </span>
           <p>Plan</p>
           <h1 id="timeline-title">Timeline</h1>
         </div>
-        <small>{visibleGroups.reduce((total, group) => total + group.tasks.length, 0)} planned</small>
+        <small>
+          {visibleGroups.reduce(
+            (total, group) => total + group.tasks.length,
+            0,
+          )}{' '}
+          planned
+        </small>
       </header>
       {visibleGroups.length ? (
         <div className="tm-timeline-groups">
           {visibleGroups.map((group) => (
-            <section className="tm-timeline-group" key={group.id} aria-labelledby={`timeline-${group.id}`}>
+            <section
+              className="tm-timeline-group"
+              key={group.id}
+              aria-labelledby={`timeline-${group.id}`}
+            >
               <header>
                 <div>
                   <h2 id={`timeline-${group.id}`}>{group.label}</h2>
@@ -3933,8 +4052,16 @@ function TimelinePage({
               </header>
               <div className="tm-timeline-items">
                 {group.tasks.map((task) => {
-                  const due = dueDisplay(task.dueDate, task.dueTime, task.dueLabel, dayEndTime);
-                  const category = categoryMeta[task.category] ?? { icon: '🏷️', label: task.category };
+                  const due = dueDisplay(
+                    task.dueDate,
+                    task.dueTime,
+                    task.dueLabel,
+                    dayEndTime,
+                  );
+                  const category = categoryMeta[task.category] ?? {
+                    icon: '🏷️',
+                    label: task.category,
+                  };
                   return (
                     <article className="tm-timeline-item" key={task.id}>
                       <button
@@ -3947,7 +4074,10 @@ function TimelinePage({
                       </button>
                       <div>
                         <h3>{task.title}</h3>
-                        <p><span>{category.icon}</span>{category.label}</p>
+                        <p>
+                          <span>{category.icon}</span>
+                          {category.label}
+                        </p>
                       </div>
                       <time className={due.state}>{due.label}</time>
                     </article>
@@ -3973,16 +4103,28 @@ export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
   const [dayEndTime, setDayEndTime] = useState(DEFAULT_DAY_END_TIME);
   useEffect(() => {
     let active = true;
-    void taskRepository.list().then((items) => {
-      if (active) {
-        setTasks(items.map(deriveTaskCompletion));
-        setLoaded(true);
-      }
-    });
+    void taskRepository
+      .list()
+      .then((items) => {
+        if (active) setTasks(items.map(deriveTaskCompletion));
+      })
+      .catch((error: unknown) => {
+        if (active) {
+          setLoadError(
+            error instanceof Error
+              ? error.message
+              : 'Dudu could not load your tasks.',
+          );
+        }
+      })
+      .finally(() => {
+        if (active) setLoaded(true);
+      });
     return () => {
       active = false;
     };
@@ -4041,6 +4183,12 @@ export default function Home() {
           <output className="tm-loading">
             <BrandMark />
             Loading tasks…
+          </output>
+        ) : loadError ? (
+          <output className="tm-loading tm-load-error">
+            <BrandMark />
+            <strong>We couldn’t load your tasks.</strong>
+            <span>{loadError}</span>
           </output>
         ) : view === 'tasks' ? (
           <TasksPage

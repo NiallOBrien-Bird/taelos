@@ -1,0 +1,244 @@
+'use client';
+
+import { useEffect, useState, type FormEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import { ArrowRightIcon, CheckIcon, LockKeyholeIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { createClient } from '@/lib/supabase/client';
+import { isSupabaseConfigured } from '@/lib/supabase/env';
+
+type AuthMode = 'signup' | 'login';
+
+export default function SignupPage() {
+  const router = useRouter();
+  const configured = isSupabaseConfigured();
+  const [mode, setMode] = useState<AuthMode>('signup');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setError(params.get('error') ?? '');
+    if (!configured) return;
+    void createClient()
+      .auth.getUser()
+      .then(({ data }) => {
+        if (data.user) router.replace('/');
+      });
+  }, [configured, router]);
+
+  const callbackUrl = () => `${window.location.origin}/auth/callback?next=/`;
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!configured) return;
+    setBusy(true);
+    setError('');
+    setMessage('');
+
+    const supabase = createClient();
+    if (mode === 'signup') {
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: callbackUrl(),
+        },
+      });
+      if (signUpError) setError(signUpError.message);
+      else if (data.session) router.replace('/');
+      else
+        setMessage(
+          'Check your email to confirm your account, then you can start using Dudu.',
+        );
+    } else {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) setError(signInError.message);
+      else router.replace('/');
+    }
+    setBusy(false);
+  };
+
+  const continueWith = async (provider: 'google' | 'github') => {
+    if (!configured) return;
+    setBusy(true);
+    setError('');
+    const { error: oauthError } = await createClient().auth.signInWithOAuth({
+      provider,
+      options: { redirectTo: callbackUrl() },
+    });
+    if (oauthError) {
+      setError(oauthError.message);
+      setBusy(false);
+    }
+  };
+
+  return (
+    <main className="auth-page">
+      <section className="auth-story" aria-labelledby="auth-story-title">
+        <a className="auth-brand" href="/signup" aria-label="Dudu home">
+          <span>
+            <CheckIcon />
+          </span>
+          <strong>Dudu</strong>
+        </a>
+        <div className="auth-story-copy">
+          <p className="auth-kicker">A quieter way to make progress</p>
+          <h1 id="auth-story-title">Give every task a clear next step.</h1>
+          <p>
+            Dudu keeps your work, deadlines, and daily momentum in one calm
+            place.
+          </p>
+          <ul>
+            <li>
+              <CheckIcon /> Plan what matters without the clutter
+            </li>
+            <li>
+              <CheckIcon /> Pick up anywhere with secure cloud sync
+            </li>
+            <li>
+              <CheckIcon /> Keep your data private to your account
+            </li>
+          </ul>
+        </div>
+        <p className="auth-story-foot">
+          Built for steady progress, not busywork.
+        </p>
+      </section>
+
+      <section className="auth-panel" aria-labelledby="auth-title">
+        <div className="auth-card">
+          <div className="auth-mobile-brand">
+            <span>
+              <CheckIcon />
+            </span>
+            Dudu
+          </div>
+          <div className="auth-tabs" role="tablist" aria-label="Account access">
+            <button
+              role="tab"
+              aria-selected={mode === 'signup'}
+              className={mode === 'signup' ? 'active' : ''}
+              onClick={() => setMode('signup')}
+            >
+              Create account
+            </button>
+            <button
+              role="tab"
+              aria-selected={mode === 'login'}
+              className={mode === 'login' ? 'active' : ''}
+              onClick={() => setMode('login')}
+            >
+              Sign in
+            </button>
+          </div>
+
+          <header>
+            <span className="auth-lock">
+              <LockKeyholeIcon />
+            </span>
+            <h2 id="auth-title">
+              {mode === 'signup' ? 'Start with Dudu' : 'Welcome back'}
+            </h2>
+            <p>
+              {mode === 'signup'
+                ? 'Create your account and make today feel manageable.'
+                : 'Sign in to get back to your tasks.'}
+            </p>
+          </header>
+
+          {!configured && (
+            <div className="auth-notice" role="status">
+              The app is ready. Connect the Supabase project to enable account
+              creation.
+            </div>
+          )}
+
+          <div className="auth-socials">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy || !configured}
+              onClick={() => void continueWith('google')}
+            >
+              <span className="auth-google">G</span> Continue with Google
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={busy || !configured}
+              onClick={() => void continueWith('github')}
+            >
+              <span className="auth-github">GH</span> Continue with GitHub
+            </Button>
+          </div>
+
+          <div className="auth-divider">
+            <span>or continue with email</span>
+          </div>
+
+          <form onSubmit={submit}>
+            <label>
+              <span>Email</span>
+              <Input
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </label>
+            <label>
+              <span>Password</span>
+              <Input
+                type="password"
+                autoComplete={
+                  mode === 'signup' ? 'new-password' : 'current-password'
+                }
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                minLength={8}
+                placeholder="At least 8 characters"
+                required
+              />
+            </label>
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className="auth-success" role="status">
+                {message}
+              </p>
+            )}
+            <Button
+              className="auth-submit"
+              type="submit"
+              disabled={busy || !configured}
+            >
+              {busy
+                ? 'Please wait…'
+                : mode === 'signup'
+                  ? 'Create my account'
+                  : 'Sign in'}
+              {!busy && <ArrowRightIcon />}
+            </Button>
+          </form>
+
+          <p className="auth-terms">
+            By continuing, you agree to keep making progress at your own pace.
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
