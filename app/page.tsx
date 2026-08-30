@@ -4122,8 +4122,13 @@ function TimelinePage({
                       <div>
                         <h3>{task.title}</h3>
                         <p>
-                          <span>{category.icon}</span>
-                          {category.label}
+                          <span title={category.label}>
+                            <CategoryIcon icon={category.icon} />
+                            {category.label}
+                          </span>
+                          {task.subtasks.length > 0 && (
+                            <span>{formatWorkDone(task)}</span>
+                          )}
                         </p>
                       </div>
                       <div className="tm-timeline-actions">
