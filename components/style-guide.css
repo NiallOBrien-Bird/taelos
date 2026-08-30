@@ -96,11 +96,6 @@
 .sg-input:focus { border-color: var(--todo-accent-border); background: rgba(4,7,20,.72); box-shadow: 0 0 0 3px var(--todo-accent-soft); }
 .sg-input:disabled { opacity: .45; cursor: not-allowed; }
 .sg-field-error .sg-input { border-color: rgba(248,113,113,.48); box-shadow: 0 0 0 3px rgba(248,113,113,.07); }
-.sg-select-wrap { position: relative; width: 100%; }
-.sg-select-wrap > [data-slot='native-select'] { height: 40px; padding: 0 36px 0 12px; border-radius: 10px; border: 1px solid var(--todo-border); background: rgba(4,7,20,.45); color: var(--todo-text); font-size: 13px; outline: none; }
-.sg-select-wrap > [data-slot='native-select']:hover { border-color: var(--todo-border-strong); }
-.sg-select-wrap > [data-slot='native-select']:focus { border-color: var(--todo-accent-border); background: rgba(4,7,20,.72); box-shadow: 0 0 0 3px var(--todo-accent-soft); }
-.sg-select-wrap > svg { position: absolute; top: 50%; right: 11px; transform: translateY(-50%); color: var(--todo-text-faint); pointer-events: none; }
 
 .sg-chip { display: inline-flex; align-items: center; min-height: 24px; padding: 0 9px; border-radius: 999px; border: 1px solid var(--todo-border); background: rgba(255,255,255,.04); color: var(--todo-text-muted); font-size: 10px; font-weight: 700; letter-spacing: .025em; white-space: nowrap; }
 .sg-chip-accent { color: var(--todo-accent-bright); border-color: var(--todo-accent-border); background: var(--todo-accent-soft); }
@@ -151,10 +146,9 @@
 .sg-quick-main { min-height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 4px; }
 .sg-quick-main > input { flex: 1; min-width: 0; height: 42px; padding: 0; border: 0; outline: 0; background: transparent; color: var(--todo-text); font-size: 14px; }
 .sg-quick-main > input::placeholder { color: var(--todo-text-faint); }
-.sg-quick-category-wrap { width: min(180px, 34%); flex: 0 0 auto; }
-.sg-quick-category-wrap > [data-slot='native-select'] { height: 34px; padding: 0 28px 0 10px; border: 1px solid var(--todo-border); border-radius: 8px; outline: 0; background: var(--todo-canvas-raised); color: var(--todo-text); font-size: 11px; cursor: pointer; }
-.sg-quick-category-wrap > [data-slot='native-select']:focus { border-color: var(--todo-accent-border); box-shadow: 0 0 0 3px var(--todo-accent-soft); }
-.sg-quick-category-wrap > [data-slot='native-select-icon'] { right: 9px; width: 14px; color: var(--todo-text-faint); }
+.sg-quick-category { width: min(180px, 34%); height: 34px; flex: 0 0 auto; padding: 0 9px 0 10px; border-color: var(--todo-border); border-radius: 8px; background: var(--todo-canvas-raised); color: var(--todo-text); font-size: 11px; }
+.sg-quick-category:hover { border-color: var(--todo-border-strong); background: var(--todo-surface-hover); }
+.sg-quick-category:focus-visible,.sg-quick-category[data-popup-open] { border-color: var(--todo-accent-border); box-shadow: 0 0 0 3px var(--todo-accent-soft); }
 .sg-quick-plus { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--todo-accent-bright); background: var(--todo-accent-soft); }
 .sg-enter-hint { color: var(--todo-text-faint); font: 500 9px var(--todo-font-mono); white-space: nowrap; }
 .sg-quick-details { border-top: 1px solid rgba(255,255,255,.06); padding: 14px 4px 2px; animation: sg-reveal .2s ease both; }
@@ -202,7 +196,10 @@
 .sg-quick-actions > div { display: flex; gap: 6px; }
 .sg-quick-summary { display: inline-flex; align-items: center; gap: 5px; color: var(--todo-text-faint); font-size: 9px; }
 .sg-quick-summary svg { width: 12px; }
-.sg-subtask-dialog { width: min(430px, calc(100vw - 32px)); gap: 14px !important; padding: 20px !important; border: 1px solid var(--todo-border); background: var(--todo-canvas-raised); color: var(--todo-text); box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+/* This dialog can be opened from the mobile task sheet.  Pin it to the
+   viewport so it is never positioned inside that sheet or below the sidebar. */
+.sg-subtask-dialog { position: fixed !important; top: 50% !important; right: auto !important; bottom: auto !important; left: 50% !important; z-index: 1000 !important; width: min(430px, calc(100vw - 32px)); margin: 0 !important; translate: -50% -50% !important; transform: none !important; gap: 14px !important; padding: 20px !important; border: 1px solid var(--todo-border); background: var(--todo-canvas-raised); color: var(--todo-text); box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+body:has(.sg-subtask-dialog) [data-slot='dialog-overlay'] { z-index: 999 !important; }
 .sg-subtask-dialog [data-slot='dialog-title'] { font: 650 18px var(--todo-font-display); }
 .sg-subtask-dialog [data-slot='dialog-description'] { color: var(--todo-text-muted); font-size: 11px; line-height: 1.5; }
 .sg-subtask-dialog-field { display: grid; gap: 7px; color: var(--todo-text-muted); font-size: 10px; font-weight: 650; }
@@ -281,7 +278,7 @@
   .sg-quick-actions { align-items: stretch; flex-direction: column; }
   .sg-quick-actions > div { justify-content: flex-end; }
   .sg-enter-hint { display: none; }
-  .sg-quick-category-wrap { width: 122px; }
+  .sg-quick-category { width: 122px; }
   .sg-subtask-editor-row { grid-template-columns: 24px minmax(0,1fr) 32px; }
   .sg-subtask-due { grid-column: 2 / 3; justify-self: start; margin: -4px 0 5px !important; }
   .sg-task-row { padding: 15px 13px; gap: 11px; }

@@ -138,9 +138,12 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { SignOutButton } from '@/components/SignOutButton';
 
 type View =
@@ -1372,6 +1375,51 @@ function readDeletedDefaultCategories() {
   }
 }
 
+function loadCategoryConfig() {
+  const defaults =
+    typeof window === 'undefined'
+      ? categoryMeta
+      : Object.fromEntries(
+          Object.entries(categoryMeta).filter(
+            ([name]) => !readDeletedDefaultCategories().has(name),
+          ),
+        );
+  if (typeof window === 'undefined') {
+    return { categories: defaults, legacyNames: {} as Record<string, string> };
+  }
+
+  const saved = window.localStorage.getItem('caxius-todo.categories.v1');
+  if (!saved) {
+    return { categories: defaults, legacyNames: {} as Record<string, string> };
+  }
+
+  try {
+    const custom = JSON.parse(saved) as Record<string, CategoryMeta>;
+    if (!custom || typeof custom !== 'object') {
+      return { categories: defaults, legacyNames: {} as Record<string, string> };
+    }
+
+    const legacyNames: Record<string, string> = {};
+    const normalizedCustom = Object.fromEntries(
+      Object.entries(custom).map(([name, meta]) => {
+        const isLegacyName =
+          meta &&
+          typeof meta.icon === 'string' &&
+          typeof meta.label === 'string' &&
+          name === `${meta.icon} ${meta.label}`;
+        if (isLegacyName) {
+          legacyNames[name] = meta.label;
+          return [meta.label, meta];
+        }
+        return [name, meta];
+      }),
+    );
+    return { categories: { ...defaults, ...normalizedCustom }, legacyNames };
+  } catch {
+    return { categories: defaults, legacyNames: {} as Record<string, string> };
+  }
+}
+
 function toDateString(date: Date) {
   return toDateKey(date);
 }
@@ -2342,20 +2390,38 @@ function ChipAwayDialog({
           {!isConfigured && (
             <label className="tm-work-dialog-field">
               <span>What unit should measure this work?</span>
-              <NativeSelect
-                className="tm-native-select"
-                name="unit"
+              <Select
                 value={unitChoice}
-                onChange={(event) => setUnitChoice(event.target.value)}
-                autoFocus
+                onValueChange={(value) => {
+                  if (value) setUnitChoice(value);
+                }}
               >
-                {progressUnits.map((option) => (
-                  <NativeSelectOption key={option.value} value={option.value}>
-                    {option.label} — {option.example}
-                  </NativeSelectOption>
-                ))}
-                <NativeSelectOption value="custom">Custom unit…</NativeSelectOption>
-              </NativeSelect>
+                <SelectTrigger
+                  className="tm-site-select-trigger"
+                  aria-label="Work tracking unit"
+                  autoFocus
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent
+                  className="tm-site-select-content"
+                  align="start"
+                  sideOffset={6}
+                >
+                  {progressUnits.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="tm-site-select-item"
+                    >
+                      {option.label} — {option.example}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="custom" className="tm-site-select-item">
+                    Custom unit…
+                  </SelectItem>
+                </SelectContent>
+              </Select>
               {unitChoice === 'custom' && (
                 <input
                   name="customUnit"
@@ -2649,18 +2715,38 @@ function TaskEditDialog({
           </div>
           <div className="tm-edit-dialog-field">
             <span>Category</span>
-            <NativeSelect
-              className="tm-native-select"
+            <Select
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              aria-label="Task category"
+              onValueChange={(value) => {
+                if (value) setCategory(value);
+              }}
             >
-              {Object.entries(categories).map(([name, meta]) => (
-                <NativeSelectOption key={name} value={name}>
-                  {meta.label}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
+              <SelectTrigger
+                className="tm-site-select-trigger"
+                aria-label="Task category"
+              >
+                <span className="tm-site-select-value">
+                  <CategoryIcon icon={categories[category]?.icon ?? category} />
+                  <SelectValue />
+                </span>
+              </SelectTrigger>
+              <SelectContent
+                className="tm-site-select-content"
+                align="start"
+                sideOffset={6}
+              >
+                {Object.entries(categories).map(([name, meta]) => (
+                  <SelectItem
+                    key={name}
+                    value={name}
+                    className="tm-site-select-item"
+                  >
+                    <CategoryIcon icon={meta.icon} />
+                    <span>{meta.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="tm-edit-dialog-actions">
             <button type="button" onClick={onClose}>
@@ -3254,24 +3340,9 @@ function TasksPage({
   onDayEndTimeChange: (time: string) => void;
 }) {
   const [category, setCategory] = useState('All');
+  const [initialCategoryConfig] = useState(loadCategoryConfig);
   const [categories, setCategories] = useState<Record<string, CategoryMeta>>(
-    () => {
-      if (typeof window === 'undefined') return categoryMeta;
-      const saved = window.localStorage.getItem('caxius-todo.categories.v1');
-      const deletedDefaults = readDeletedDefaultCategories();
-      const defaults = Object.fromEntries(
-        Object.entries(categoryMeta).filter(([name]) => !deletedDefaults.has(name)),
-      );
-      if (!saved) return defaults;
-      try {
-        const custom = JSON.parse(saved) as Record<string, CategoryMeta>;
-        return custom && typeof custom === 'object'
-          ? { ...defaults, ...custom }
-          : defaults;
-      } catch {
-        return defaults;
-      }
-    },
+    initialCategoryConfig.categories,
   );
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
@@ -3316,6 +3387,42 @@ function TasksPage({
     window.addEventListener('keydown', closeOnEscape);
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [categoryDialogOpen]);
+  useEffect(() => {
+    const legacyNames = initialCategoryConfig.legacyNames;
+    if (!Object.keys(legacyNames).length) return;
+
+    window.localStorage.setItem(
+      'caxius-todo.categories.v1',
+      JSON.stringify(
+        Object.fromEntries(
+          Object.entries(categories).filter(([key]) => !categoryMeta[key]),
+        ),
+      ),
+    );
+
+    const nextTasks = tasks.map((task) => ({
+      ...task,
+      category: legacyNames[task.category] ?? task.category,
+      subtasks: task.subtasks.map((subtask) => ({
+        ...subtask,
+        category: subtask.category
+          ? (legacyNames[subtask.category] ?? subtask.category)
+          : subtask.category,
+      })),
+    }));
+    const changed = nextTasks.some(
+      (task, index) => task !== tasks[index] &&
+        (task.category !== tasks[index].category ||
+          task.subtasks.some(
+            (subtask, subtaskIndex) =>
+              subtask.category !== tasks[index].subtasks[subtaskIndex].category,
+          )),
+    );
+    if (!changed) return;
+
+    onChange(nextTasks);
+    void taskRepository.replace(nextTasks);
+  }, [categories, initialCategoryConfig.legacyNames, onChange, tasks]);
   const visible = tasks
     .filter((task) => !task.shelved)
     .filter((task) => category === 'All' || task.category === category);
@@ -3327,7 +3434,7 @@ function TasksPage({
     const label = categoryName.trim();
     const icon = selectedIcon;
     if (!label || !icon) return;
-    const name = `${icon} ${label}`;
+    const name = label;
     if (categories[name]) return;
     const next = { ...categories, [name]: { icon, label } };
     setCategories(next);
@@ -3589,23 +3696,37 @@ function TasksPage({
               <span>
                 Icon <em>(required)</em>
               </span>
-              <NativeSelect
-                className="tm-native-select tm-icon-native-select"
-                value={selectedIcon ?? ''}
-                onChange={(event) => setSelectedIcon(event.target.value || null)}
-                aria-label="Category icon"
-                aria-invalid={!selectedIcon}
-                required
+              <Select
+                value={selectedIcon}
+                onValueChange={(value) => setSelectedIcon(value)}
               >
-                <NativeSelectOption value="" disabled>
-                  Choose an icon
-                </NativeSelectOption>
-                {categoryIconOptions.map(({ id, name }) => (
-                  <NativeSelectOption key={id} value={id}>
-                    {name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+                <SelectTrigger
+                  className="tm-site-select-trigger"
+                  aria-label="Category icon"
+                  aria-invalid={!selectedIcon}
+                >
+                  <span className="tm-site-select-value">
+                    {selectedIcon && <CategoryIcon icon={selectedIcon} />}
+                    <SelectValue placeholder="Choose an icon" />
+                  </span>
+                </SelectTrigger>
+                <SelectContent
+                  className="tm-site-select-content tm-icon-select-content"
+                  align="start"
+                  sideOffset={6}
+                >
+                  {categoryIconOptions.map(({ id, name }) => (
+                    <SelectItem
+                      key={id}
+                      value={id}
+                      className="tm-site-select-item"
+                    >
+                      <CategoryIcon icon={id} />
+                      <span>{name}</span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="tm-category-dialog-actions">
               <button

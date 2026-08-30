@@ -8,12 +8,14 @@ import {
   type InputHTMLAttributes,
   type ReactNode,
   type Ref,
-  type SelectHTMLAttributes,
 } from 'react';
 import {
-  NativeSelect,
-  NativeSelectOption,
-} from '@/components/ui/native-select';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatDeadlineResolution, parseHumanDeadline } from '@/lib/human-deadline';
 import {
   Dialog,
@@ -165,36 +167,74 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
   },
 );
 
-export interface SelectFieldProps
-  extends Omit<SelectHTMLAttributes<HTMLSelectElement>, 'size'> {
+export interface SelectFieldProps {
   label?: string;
   hint?: string;
   error?: string;
+  id?: string;
+  className?: string;
+  value?: string;
+  defaultValue?: string;
+  disabled?: boolean;
+  'aria-label'?: string;
+  onValueChange?: (value: string) => void;
   options: Array<{ value: string; label: string }>;
 }
 
-export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
+export const SelectField = forwardRef<HTMLButtonElement, SelectFieldProps>(
   function SelectField(
-    { label, hint, error, options, id, className = '', ...props },
+    {
+      label,
+      hint,
+      error,
+      options,
+      id,
+      className = '',
+      value,
+      defaultValue,
+      disabled,
+      'aria-label': ariaLabel,
+      onValueChange,
+    },
     ref,
   ) {
     const generatedId = useId();
     const fieldId = id ?? generatedId;
     return (
       <FieldShell label={label} hint={hint} error={error} htmlFor={fieldId}>
-        <NativeSelect
-          className={`sg-select-wrap ${className}`}
-          ref={ref}
-          id={fieldId}
-          aria-invalid={Boolean(error)}
-          {...props}
+        <Select
+          value={value}
+          defaultValue={defaultValue}
+          onValueChange={(nextValue) => {
+            if (nextValue) onValueChange?.(nextValue);
+          }}
         >
-          {options.map((option) => (
-            <NativeSelectOption key={option.value} value={option.value}>
-              {option.label}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
+          <SelectTrigger
+            ref={ref}
+            id={fieldId}
+            className={`tm-site-select-trigger ${className}`}
+            aria-invalid={Boolean(error)}
+            aria-label={ariaLabel}
+            disabled={disabled}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            className="tm-site-select-content"
+            align="start"
+            sideOffset={6}
+          >
+            {options.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="tm-site-select-item"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </FieldShell>
     );
   },
@@ -516,14 +556,34 @@ export function QuickAddBar({
           aria-label="Task title"
           placeholder="Add a task…"
         />
-        <NativeSelect
-          className="sg-quick-category-wrap"
+        <Select
           value={category}
-          onChange={(event) => setCategory(event.target.value)}
-          aria-label="Task category"
+          onValueChange={(value) => {
+            if (value) setCategory(value);
+          }}
         >
-          {categories.map((value) => <NativeSelectOption key={value} value={value}>{value}</NativeSelectOption>)}
-        </NativeSelect>
+          <SelectTrigger
+            className="tm-site-select-trigger tm-site-select-trigger-compact sg-quick-category"
+            aria-label="Task category"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent
+            className="tm-site-select-content"
+            align="end"
+            sideOffset={6}
+          >
+            {categories.map((value) => (
+              <SelectItem
+                key={value}
+                value={value}
+                className="tm-site-select-item"
+              >
+                {value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         {title && <span className="sg-enter-hint">Enter ↵</span>}
       </div>
       {expanded && (
@@ -721,7 +781,7 @@ export function TodoStyleGuide() {
         <SelectField
           aria-label="Preview accent"
           value={accent}
-          onChange={(event) => setAccent(event.target.value)}
+          onValueChange={(value) => setAccent(value as 'violet' | 'indigo')}
           options={[
             { value: 'violet', label: 'Azure accent' },
             { value: 'indigo', label: 'Cobalt accent' },

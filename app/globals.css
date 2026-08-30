@@ -3886,38 +3886,6 @@ button {
   border-color: #5b91ec;
   box-shadow: 0 0 0 3px rgba(91, 145, 236, 0.16);
 }
-.tm-native-select {
-  width: 100%;
-}
-.tm-native-select > [data-slot='native-select'] {
-  width: 100%;
-  height: 42px;
-  padding: 0 36px 0 12px;
-  border: 1px solid #303a4d;
-  border-radius: 10px;
-  outline: 0;
-  background: #0b101a;
-  color: #edf1f7;
-  color-scheme: dark;
-  font: inherit;
-  cursor: pointer;
-}
-.tm-native-select > [data-slot='native-select']:hover {
-  border-color: #45536b;
-  background: #0e1420;
-}
-.tm-native-select > [data-slot='native-select']:focus-visible {
-  border-color: #5b91ec;
-  box-shadow: 0 0 0 3px rgba(91, 145, 236, 0.16);
-}
-.tm-native-select > [data-slot='native-select'][aria-invalid='true'] {
-  border-style: dashed;
-}
-.tm-native-select > [data-slot='native-select-icon'] {
-  right: 12px;
-  width: 15px;
-  color: #8f9bad;
-}
 .tm-work-dialog-field small {
   color: #7f8998;
   font-size: 11px;
@@ -4062,7 +4030,7 @@ button {
   opacity: 0.45;
   cursor: not-allowed;
 }
-.tm-category-select-trigger {
+.tm-site-select-trigger {
   width: 100%;
   height: 42px;
   padding: 0 12px;
@@ -4073,41 +4041,44 @@ button {
   font: inherit;
   box-shadow: none;
 }
-.tm-category-select-trigger:hover {
+.tm-site-select-trigger:hover {
   border-color: #45536b;
   background: #0e1420;
 }
-.tm-category-select-trigger:focus-visible,
-.tm-category-select-trigger[data-popup-open] {
+.tm-site-select-trigger:focus-visible,
+.tm-site-select-trigger[data-popup-open] {
   border-color: #5b91ec;
   box-shadow: 0 0 0 3px rgba(91, 145, 236, 0.16);
 }
-.tm-category-select-trigger > svg {
+.tm-site-select-trigger[aria-invalid='true'] {
+  border-style: dashed;
+}
+.tm-site-select-trigger > svg {
   width: 15px;
   color: #8f9bad;
   transition: transform 0.16s ease;
 }
-.tm-category-select-trigger[data-popup-open] > svg {
+.tm-site-select-trigger[data-popup-open] > svg {
   transform: rotate(180deg);
 }
-.tm-category-select-value {
+.tm-site-select-value {
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 9px;
   overflow: hidden;
 }
-.tm-category-select-value > .tm-category-icon {
+.tm-site-select-value > .tm-category-icon {
   width: 17px;
   height: 17px;
   flex: 0 0 auto;
 }
-.tm-category-select-value > .tm-category-emoji {
+.tm-site-select-value > .tm-category-emoji {
   width: auto;
   height: auto;
   font-size: 17px;
 }
-.tm-category-select-content {
+.tm-site-select-content {
   padding: 5px;
   border: 1px solid #37445a;
   border-radius: 12px;
@@ -4115,7 +4086,7 @@ button {
   color: #edf1f7;
   box-shadow: 0 18px 38px rgba(0, 0, 0, 0.42);
 }
-.tm-category-select-item {
+.tm-site-select-item {
   min-height: 38px;
   padding: 0 34px 0 10px;
   gap: 10px;
@@ -4124,32 +4095,35 @@ button {
   cursor: pointer;
   font-size: 13px;
 }
-.tm-category-select-item:hover,
-.tm-category-select-item[data-highlighted] {
+.tm-site-select-item:hover,
+.tm-site-select-item[data-highlighted] {
   background: #202d43;
   color: #fff;
 }
-.tm-category-select-item[data-selected] {
+.tm-site-select-item[data-selected] {
   background: rgba(91, 145, 236, 0.16);
   color: #fff;
 }
-.tm-category-select-item > .tm-category-icon {
+.tm-site-select-item > .tm-category-icon {
   width: 17px;
   height: 17px;
   color: #91bbff;
 }
-.tm-category-select-item > .tm-category-emoji {
+.tm-site-select-item > .tm-category-emoji {
   width: auto;
   height: auto;
   color: inherit;
   font-size: 17px;
 }
-.tm-category-select-item [data-slot='select-item-indicator'] {
+.tm-site-select-item [data-slot='select-item-indicator'] {
   right: 10px;
   color: #82b1ff;
 }
-.tm-category-select-item [data-slot='select-item-indicator'] svg {
+.tm-site-select-item [data-slot='select-item-indicator'] svg {
   width: 14px;
+}
+.tm-icon-select-content {
+  max-height: min(360px, var(--available-height));
 }
 .tm-edit-dialog-grid {
   display: grid;
@@ -6385,15 +6359,12 @@ button {
     outline: none;
   }
 
-  .tm-mobile-add-dialog .sg-quick-category-wrap {
+  .tm-mobile-add-dialog .sg-quick-category {
     width: clamp(88px, 27vw, 108px);
     min-width: 0;
     max-width: 108px;
-    flex: 0 0 auto;
-  }
-
-  .tm-mobile-add-dialog .sg-quick-category-wrap > [data-slot='native-select'] {
     height: 36px;
+    flex: 0 0 auto;
   }
 
   .tm-mobile-add-dialog .sg-enter-hint {
