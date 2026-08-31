@@ -89,12 +89,14 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import {
   ArchiveIcon,
+  BranchIcon,
   CalendarIcon,
   CheckIcon,
   GlassPanel,
   IconButton,
   ListIcon,
   MoreIcon,
+  PlusIcon,
   QuickAddBar,
   TimelineIcon,
   TodoStyleGuide,
@@ -1726,6 +1728,13 @@ interface RowData {
   subtasks: Subtask[];
 }
 
+type TaskEditChanges = Pick<
+  RowData,
+  'title' | 'dueDate' | 'dueTime' | 'dueLabel' | 'category'
+> & {
+  subtasks?: Subtask[];
+};
+
 type DeferredDeadline = Pick<RowData, 'dueDate' | 'dueTime' | 'dueLabel'>;
 
 function deferredBaseDate(row: RowData, dayEndTime: string) {
@@ -2431,18 +2440,15 @@ function TaskEditDialog({
   row,
   categories,
   dayEndTime,
+  allowSubtasks,
   onSave,
   onClose,
 }: {
   row: RowData;
   categories: Record<string, CategoryMeta>;
   dayEndTime: string;
-  onSave: (
-    changes: Pick<
-      RowData,
-      'title' | 'dueDate' | 'dueTime' | 'dueLabel' | 'category'
-    >,
-  ) => void;
+  allowSubtasks: boolean;
+  onSave: (changes: TaskEditChanges) => void;
   onClose: () => void;
 }) {
   const [title, setTitle] = useState(row.title);
@@ -2459,6 +2465,10 @@ function TaskEditDialog({
     !row.dueLabel && !!row.dueDate,
   );
   const [category, setCategory] = useState(row.category);
+  const [subtasks, setSubtasks] = useState<Subtask[]>(() =>
+    row.subtasks.map((subtask) => ({ ...subtask })),
+  );
+  const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -2487,14 +2497,35 @@ function TaskEditDialog({
         : resolved
           ? { date: resolved.date, time: resolved.time, label: resolved.label }
           : { date: undefined, time: undefined, label: undefined };
-    onSave({
+    const changes: TaskEditChanges = {
       title: nextTitle,
       dueDate: nextDeadline.date,
       dueTime: nextDeadline.time,
       dueLabel: nextDeadline.label,
       category,
-    });
+    };
+    if (allowSubtasks) {
+      changes.subtasks = subtasks.map((subtask) => ({
+        ...subtask,
+        title: subtask.title.trim(),
+      }));
+    }
+    onSave(changes);
     onClose();
+  };
+
+  const addSubtask = () => {
+    const nextTitle = newSubtaskTitle.trim();
+    if (!nextTitle || subtasks.length >= 100) return;
+    setSubtasks((current) => [
+      ...current,
+      {
+        id: makeId('subtask'),
+        title: nextTitle,
+        completed: false,
+      },
+    ]);
+    setNewSubtaskTitle('');
   };
 
   const resolvedDeadline = deadlineText
@@ -2694,6 +2725,80 @@ function TaskEditDialog({
               </SelectContent>
             </Select>
           </div>
+          {allowSubtasks && (
+            <section
+              className="tm-edit-subtasks"
+              aria-labelledby={`edit-subtasks-${row.id}`}
+            >
+              <div className="tm-edit-subtasks-heading">
+                <div>
+                  <strong id={`edit-subtasks-${row.id}`}>Subtasks</strong>
+                  <span>Break this task into smaller steps.</span>
+                </div>
+                <small>{subtasks.length}/100</small>
+              </div>
+              {subtasks.length > 0 && (
+                <div className="tm-edit-subtask-list">
+                  {subtasks.map((subtask, index) => (
+                    <div className="tm-edit-subtask-row" key={subtask.id}>
+                      <span aria-hidden="true">{index + 1}</span>
+                      <input
+                        aria-label={`Subtask ${index + 1}`}
+                        value={subtask.title}
+                        onChange={(event) =>
+                          setSubtasks((current) =>
+                            current.map((item) =>
+                              item.id === subtask.id
+                                ? { ...item, title: event.target.value }
+                                : item,
+                            ),
+                          )
+                        }
+                        maxLength={160}
+                        required
+                      />
+                      <button
+                        type="button"
+                        aria-label={`Remove subtask ${subtask.title}`}
+                        onClick={() =>
+                          setSubtasks((current) =>
+                            current.filter((item) => item.id !== subtask.id),
+                          )
+                        }
+                      >
+                        <TrashIcon />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="tm-edit-subtask-add">
+                <BranchIcon />
+                <input
+                  aria-label="New subtask name"
+                  value={newSubtaskTitle}
+                  onChange={(event) => setNewSubtaskTitle(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      addSubtask();
+                    }
+                  }}
+                  placeholder="Add a smaller step"
+                  maxLength={160}
+                  disabled={subtasks.length >= 100}
+                />
+                <button
+                  type="button"
+                  onClick={addSubtask}
+                  disabled={!newSubtaskTitle.trim() || subtasks.length >= 100}
+                >
+                  <PlusIcon />
+                  <span>Add</span>
+                </button>
+              </div>
+            </section>
+          )}
           <div className="tm-edit-dialog-actions">
             <button type="button" onClick={onClose}>
               Cancel
@@ -2724,12 +2829,8 @@ function TaskTable({
   const [chipOpen, setChipOpen] = useState<string | null>(null);
   const [editState, setEditState] = useState<{
     row: RowData;
-    save: (
-      changes: Pick<
-        RowData,
-        'title' | 'dueDate' | 'dueTime' | 'dueLabel' | 'category'
-      >,
-    ) => void;
+    allowSubtasks: boolean;
+    save: (changes: TaskEditChanges) => void;
   } | null>(null);
   const [deferState, setDeferState] = useState<{
     row: RowData;
@@ -2831,6 +2932,7 @@ function TaskTable({
                   onEdit={() =>
                     setEditState({
                       row: parentRow,
+                      allowSubtasks: true,
                       save: (changes) =>
                         updateTask(task.id, (item) => ({
                           ...item,
@@ -2922,7 +3024,8 @@ function TaskTable({
                         onEdit={() =>
                           setEditState({
                             row: childRow,
-                            save: (changes) =>
+                            allowSubtasks: false,
+                            save: ({ subtasks: _subtasks, ...changes }) =>
                               updateChild(task.id, child.id, (item) => ({
                                 ...item,
                                 ...changes,
@@ -2975,6 +3078,7 @@ function TaskTable({
           row={editState.row}
           categories={categories}
           dayEndTime={dayEndTime}
+          allowSubtasks={editState.allowSubtasks}
           onSave={editState.save}
           onClose={() => setEditState(null)}
         />
@@ -3357,7 +3461,8 @@ function TasksPage({
       })),
     }));
     const changed = nextTasks.some(
-      (task, index) => task !== tasks[index] &&
+      (task, index) =>
+        task !== tasks[index] &&
         (task.category !== tasks[index].category ||
           task.subtasks.some(
             (subtask, subtaskIndex) =>
@@ -4352,7 +4457,11 @@ export default function Home() {
       {undoCount > 0 && (
         <output className="tm-undo-toast" aria-live="polite">
           <span>Last task change</span>
-          <button type="button" onClick={undoLastChange} aria-label="Undo last task change">
+          <button
+            type="button"
+            onClick={undoLastChange}
+            aria-label="Undo last task change"
+          >
             Undo
           </button>
         </output>
