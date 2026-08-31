@@ -2186,15 +2186,18 @@ function TaskGridRow({
             className="tm-title-button"
             data-keyboard-task
             data-task-key={row.id}
-            aria-keyshortcuts="Enter"
             onClick={row.subtasks.length ? onToggleExpand : onChip}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
+                event.preventDefault();
+                if (row.subtasks.length) onToggleExpand?.();
+              } else if (event.key.toLowerCase() === 'e') {
                 event.preventDefault();
                 onEdit();
               }
             }}
             aria-expanded={row.subtasks.length ? expanded : undefined}
+            aria-keyshortcuts="Enter E"
           >
             <span>{row.title}</span>
           </button>
@@ -2484,9 +2487,11 @@ function TaskEditDialog({
     row.subtasks.map((subtask) => ({ ...subtask })),
   );
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+  const [newSubtaskTime, setNewSubtaskTime] = useState('');
   const titleRef = useRef<HTMLInputElement>(null);
   const editDeadlineRef = useRef<HTMLInputElement>(null);
   const editTimeRef = useRef<HTMLInputElement>(null);
+  const newSubtaskTitleRef = useRef<HTMLInputElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
 
@@ -2537,6 +2542,15 @@ function TaskEditDialog({
         ...subtask,
         title: subtask.title.trim(),
       }));
+      const nextSubtaskTitle = newSubtaskTitle.trim();
+      if (nextSubtaskTitle && changes.subtasks.length < 100) {
+        changes.subtasks.push({
+          id: makeId('subtask'),
+          title: nextSubtaskTitle,
+          completed: false,
+          dueTime: newSubtaskTime || undefined,
+        });
+      }
     }
     onSave(changes);
     onClose();
@@ -2551,9 +2565,11 @@ function TaskEditDialog({
         id: makeId('subtask'),
         title: nextTitle,
         completed: false,
+        dueTime: newSubtaskTime || undefined,
       },
     ]);
     setNewSubtaskTitle('');
+    setNewSubtaskTime('');
   };
 
   const resolvedDeadline = deadlineText
@@ -2614,38 +2630,22 @@ function TaskEditDialog({
             />
           </label>
           <div className="tm-edit-dialog-field">
-            <span>Category</span>
-            <Select
+            <label htmlFor={`edit-category-${row.id}`}>Category</label>
+            <select
+              id={`edit-category-${row.id}`}
+              className="tm-edit-category-select"
               value={category}
-              onValueChange={(value) => {
-                if (value) setCategory(value);
+              onChange={(event) => setCategory(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') submit(event);
               }}
             >
-              <SelectTrigger
-                className="tm-site-select-trigger"
-                aria-label="Task category"
-                onKeyDown={(event) => {
-                  if (event.key === 'Tab' && !event.shiftKey) {
-                    event.preventDefault();
-                    editDeadlineRef.current?.focus();
-                  }
-                }}
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="tm-site-select-content" sideOffset={6}>
-                {Object.entries(categories).map(([name, meta]) => (
-                  <SelectItem
-                    key={name}
-                    value={name}
-                    className="tm-site-select-item"
-                  >
-                    <CategoryIcon icon={meta.icon} />
-                    {meta.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {Object.entries(categories).map(([name, meta]) => (
+                <option key={name} value={name}>
+                  {meta.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="sg-human-deadline tm-edit-human-deadline">
             <label htmlFor={`edit-deadline-${row.id}`}>
@@ -2801,6 +2801,24 @@ function TaskEditDialog({
                         maxLength={160}
                         required
                       />
+                      <input
+                        className="tm-edit-subtask-time"
+                        aria-label={`Subtask ${index + 1} time`}
+                        type="time"
+                        value={subtask.dueTime ?? ''}
+                        onChange={(event) =>
+                          setSubtasks((current) =>
+                            current.map((item) =>
+                              item.id === subtask.id
+                                ? {
+                                    ...item,
+                                    dueTime: event.target.value || undefined,
+                                  }
+                                : item,
+                            ),
+                          )
+                        }
+                      />
                       <button
                         type="button"
                         aria-label={`Remove subtask ${subtask.title}`}
@@ -2819,17 +2837,40 @@ function TaskEditDialog({
               <div className="tm-edit-subtask-add">
                 <BranchIcon />
                 <input
+                  ref={newSubtaskTitleRef}
                   aria-label="New subtask name"
                   value={newSubtaskTitle}
                   onChange={(event) => setNewSubtaskTitle(event.target.value)}
                   onKeyDown={(event) => {
                     if (event.key === 'Enter') {
-                      event.preventDefault();
-                      addSubtask();
+                      submit(event);
                     }
                   }}
                   placeholder="Add a smaller step"
                   maxLength={160}
+                  disabled={subtasks.length >= 100}
+                />
+                <input
+                  className="tm-edit-subtask-time"
+                  aria-label="New subtask time"
+                  type="time"
+                  value={newSubtaskTime}
+                  onChange={(event) => setNewSubtaskTime(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      submit(event);
+                    } else if (
+                      event.key === 'Tab' &&
+                      !event.shiftKey &&
+                      newSubtaskTitle.trim()
+                    ) {
+                      event.preventDefault();
+                      addSubtask();
+                      requestAnimationFrame(() =>
+                        newSubtaskTitleRef.current?.focus(),
+                      );
+                    }
+                  }}
                   disabled={subtasks.length >= 100}
                 />
                 <button
@@ -3421,6 +3462,11 @@ function WorkDonePanel({
 function TasksPage({
   tasks,
   onChange,
+  categories,
+  onCategoriesChange,
+  category,
+  onCategoryChange,
+  legacyCategoryNames,
   theme,
   onTheme,
   dayEndTime,
@@ -3428,16 +3474,16 @@ function TasksPage({
 }: {
   tasks: Task[];
   onChange: (tasks: Task[]) => void;
+  categories: Record<string, CategoryMeta>;
+  onCategoriesChange: (categories: Record<string, CategoryMeta>) => void;
+  category: string;
+  onCategoryChange: (category: string) => void;
+  legacyCategoryNames: Record<string, string>;
   theme: Theme;
   onTheme: () => void;
   dayEndTime: string;
   onDayEndTimeChange: (time: string) => void;
 }) {
-  const [category, setCategory] = useState('All');
-  const [initialCategoryConfig] = useState(loadCategoryConfig);
-  const [categories, setCategories] = useState<Record<string, CategoryMeta>>(
-    initialCategoryConfig.categories,
-  );
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [mobileAddOpen, setMobileAddOpen] = useState(false);
   const [mobileKeyboardInset, setMobileKeyboardInset] = useState(0);
@@ -3482,7 +3528,7 @@ function TasksPage({
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [categoryDialogOpen]);
   useEffect(() => {
-    const legacyNames = initialCategoryConfig.legacyNames;
+    const legacyNames = legacyCategoryNames;
     if (!Object.keys(legacyNames).length) return;
 
     window.localStorage.setItem(
@@ -3517,7 +3563,7 @@ function TasksPage({
 
     onChange(nextTasks);
     void taskRepository.replace(nextTasks);
-  }, [categories, initialCategoryConfig.legacyNames, onChange, tasks]);
+  }, [categories, legacyCategoryNames, onChange, tasks]);
   const visible = tasks
     .filter((task) => !task.shelved)
     .filter((task) => category === 'All' || task.category === category);
@@ -3532,7 +3578,7 @@ function TasksPage({
     const name = label;
     if (categories[name]) return;
     const next = { ...categories, [name]: { icon, label } };
-    setCategories(next);
+    onCategoriesChange(next);
     window.localStorage.setItem(
       'caxius-todo.categories.v1',
       JSON.stringify(
@@ -3577,8 +3623,8 @@ function TasksPage({
         JSON.stringify([...deletedDefaults]),
       );
     }
-    setCategories(nextCategories);
-    setCategory(category === name ? 'All' : category);
+    onCategoriesChange(nextCategories);
+    onCategoryChange(category === name ? 'All' : category);
     window.localStorage.setItem(
       'caxius-todo.categories.v1',
       JSON.stringify(
@@ -3706,7 +3752,9 @@ function TasksPage({
               key={name}
               type="button"
               className={category === name ? 'active' : ''}
-              onClick={() => setCategory(category === name ? 'All' : name)}
+              onClick={() =>
+                onCategoryChange(category === name ? 'All' : name)
+              }
               onContextMenu={(event) => {
                 event.preventDefault();
                 setCategoryContextMenu({
@@ -3967,8 +4015,15 @@ function ShelfPage({
                       className="tm-keyboard-task-title"
                       data-keyboard-task
                       data-task-key={task.id}
-                      aria-keyshortcuts="Enter"
+                      aria-keyshortcuts="E"
                       onClick={() => setEditTask(task)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') event.preventDefault();
+                        if (event.key.toLowerCase() === 'e') {
+                          event.preventDefault();
+                          setEditTask(task);
+                        }
+                      }}
                     >
                       {task.title}
                     </button>
@@ -4049,17 +4104,21 @@ type TimelineGroup = {
 function TimelinePage({
   tasks,
   onChange,
+  categories,
+  category,
+  onCategoryChange,
   dayEndTime,
 }: {
   tasks: Task[];
   onChange: (tasks: Task[]) => void;
+  categories: Record<string, CategoryMeta>;
+  category: string;
+  onCategoryChange: (category: string) => void;
   dayEndTime: string;
 }) {
   const [deferTask, setDeferTask] = useState<Task | null>(null);
   const [chipTask, setChipTask] = useState<Task | null>(null);
   const [editTask, setEditTask] = useState<Task | null>(null);
-  const [editorCategories] = useState(() => loadCategoryConfig().categories);
-  const [categoryFilter, setCategoryFilter] = useState('All');
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
   const todayKey = toDateString(today);
@@ -4147,11 +4206,8 @@ function TimelinePage({
       task.dueDate &&
       groupFor(task.dueDate),
   );
-  const timelineCategories = Array.from(
-    new Set(plannedTasks.map((task) => task.category)),
-  );
   const categoryFor = (name: string) => {
-    if (categoryMeta[name]) return categoryMeta[name];
+    if (categories[name]) return categories[name];
     const [icon, ...labelParts] = name.split(' ');
     if (categoryIconById.has(icon) && labelParts.length) {
       return { icon, label: labelParts.join(' ') };
@@ -4159,7 +4215,7 @@ function TimelinePage({
     return { icon: 'tags', label: name };
   };
   const filteredTasks = plannedTasks.filter(
-    (task) => categoryFilter === 'All' || task.category === categoryFilter,
+    (task) => category === 'All' || task.category === category,
   );
   const dueNowCount = plannedTasks.filter(
     (task) => task.dueDate && task.dueDate <= todayKey,
@@ -4245,15 +4301,14 @@ function TimelinePage({
           <legend>Filter timeline by category</legend>
           <button
             type="button"
-            className={categoryFilter === 'All' ? 'active' : ''}
-            aria-pressed={categoryFilter === 'All'}
-            onClick={() => setCategoryFilter('All')}
+            className={category === 'All' ? 'active' : ''}
+            aria-pressed={category === 'All'}
+            onClick={() => onCategoryChange('All')}
           >
             <span>All</span>
             <small>{plannedTasks.length}</small>
           </button>
-          {timelineCategories.map((name) => {
-            const meta = categoryFor(name);
+          {Object.entries(categories).map(([name, meta]) => {
             const count = plannedTasks.filter(
               (task) => task.category === name,
             ).length;
@@ -4261,10 +4316,10 @@ function TimelinePage({
               <button
                 type="button"
                 key={name}
-                className={categoryFilter === name ? 'active' : ''}
-                aria-pressed={categoryFilter === name}
+                className={category === name ? 'active' : ''}
+                aria-pressed={category === name}
                 onClick={() =>
-                  setCategoryFilter(categoryFilter === name ? 'All' : name)
+                  onCategoryChange(category === name ? 'All' : name)
                 }
               >
                 <CategoryIcon icon={meta.icon} />
@@ -4326,8 +4381,15 @@ function TimelinePage({
                             className="tm-keyboard-task-title"
                             data-keyboard-task
                             data-task-key={task.id}
-                            aria-keyshortcuts="Enter"
+                            aria-keyshortcuts="E"
                             onClick={() => setEditTask(task)}
+                            onKeyDown={(event) => {
+                              if (event.key === 'Enter') event.preventDefault();
+                              if (event.key.toLowerCase() === 'e') {
+                                event.preventDefault();
+                                setEditTask(task);
+                              }
+                            }}
                           >
                             {task.title}
                           </button>
@@ -4381,7 +4443,7 @@ function TimelinePage({
               : 'Tasks with a due date will appear here when they matter.'}
           </p>
           {plannedTasks.length > 0 && (
-            <button type="button" onClick={() => setCategoryFilter('All')}>
+            <button type="button" onClick={() => onCategoryChange('All')}>
               Clear filter
             </button>
           )}
@@ -4405,7 +4467,7 @@ function TimelinePage({
       {editTask && (
         <TaskEditDialog
           row={editTask}
-          categories={editorCategories}
+          categories={categories}
           dayEndTime={dayEndTime}
           allowSubtasks
           onSave={(changes) => {
@@ -4436,6 +4498,11 @@ export default function Home() {
   const [loadError, setLoadError] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
   const [dayEndTime, setDayEndTime] = useState(DEFAULT_DAY_END_TIME);
+  const [initialCategoryConfig] = useState(loadCategoryConfig);
+  const [categories, setCategories] = useState<Record<string, CategoryMeta>>(
+    initialCategoryConfig.categories,
+  );
+  const [category, setCategory] = useState('All');
   useEffect(() => {
     let active = true;
     void taskRepository
@@ -4590,6 +4657,14 @@ export default function Home() {
         setShortcutsOpen(true);
         return;
       }
+      if (event.key === 'Escape') {
+        const selectedTask = target?.closest<HTMLElement>('[data-keyboard-task]');
+        if (selectedTask) {
+          event.preventDefault();
+          selectedTask.blur();
+        }
+        return;
+      }
 
       const rows = Array.from(
         document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
@@ -4653,8 +4728,10 @@ export default function Home() {
               <h2>Tasks</h2>
               <dl>
                 <div><dt><kbd>N</kbd></dt><dd>Add a task</dd></div>
-                <div><dt><kbd>Enter</kbd></dt><dd>Edit the selected task</dd></div>
+                <div><dt><kbd>Enter</kbd></dt><dd>Expand or collapse subtasks</dd></div>
+                <div><dt><kbd>E</kbd></dt><dd>Edit the selected task</dd></div>
                 <div><dt><kbd>Space</kbd></dt><dd>Complete the selected task</dd></div>
+                <div><dt><kbd>Esc</kbd></dt><dd>Leave row navigation</dd></div>
                 <div><dt><kbd>⌘/Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
               </dl>
             </section>
@@ -4698,6 +4775,11 @@ export default function Home() {
           <TasksPage
             tasks={tasks}
             onChange={commitTasks}
+            categories={categories}
+            onCategoriesChange={setCategories}
+            category={category}
+            onCategoryChange={setCategory}
+            legacyCategoryNames={initialCategoryConfig.legacyNames}
             theme={theme}
             onTheme={toggleTheme}
             dayEndTime={dayEndTime}
@@ -4707,6 +4789,9 @@ export default function Home() {
           <TimelinePage
             tasks={tasks}
             onChange={commitTasks}
+            categories={categories}
+            category={category}
+            onCategoryChange={setCategory}
             dayEndTime={dayEndTime}
           />
         ) : view === 'shelf' ? (

@@ -4085,7 +4085,8 @@ button {
   color: #c8d0dc;
   font-size: 12px;
 }
-.tm-edit-dialog-field input {
+.tm-edit-dialog-field input,
+.tm-edit-category-select {
   width: 100%;
   height: 42px;
   min-width: 0;
@@ -4097,7 +4098,8 @@ button {
   color: #edf1f7;
   font: inherit;
 }
-.tm-edit-dialog-field input:focus {
+.tm-edit-dialog-field input:focus,
+.tm-edit-category-select:focus {
   border-color: #5b91ec;
   box-shadow: 0 0 0 3px rgba(91, 145, 236, 0.16);
 }
@@ -4139,7 +4141,7 @@ button {
 .tm-edit-subtask-row {
   min-height: 42px;
   display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) 34px;
+  grid-template-columns: 24px minmax(0, 1fr) 100px 34px;
   align-items: center;
   gap: 7px;
   border: 1px solid #303a4d;
@@ -4191,13 +4193,33 @@ button {
 .tm-edit-subtask-add {
   min-height: 42px;
   display: grid;
-  grid-template-columns: 20px minmax(0, 1fr) auto;
+  grid-template-columns: 20px minmax(0, 1fr) 100px auto;
   align-items: center;
   gap: 8px;
   padding: 0 7px 0 11px;
   border: 1px dashed #3b4960;
   border-radius: 9px;
   color: #73a5f5;
+}
+
+.tm-edit-subtask-time {
+  width: 100%;
+  padding-inline: 6px;
+  color-scheme: dark;
+  font: 500 10px var(--todo-font-mono) !important;
+}
+
+@media (max-width: 520px) {
+  .tm-edit-subtask-row,
+  .tm-edit-subtask-add {
+    grid-template-columns: 24px minmax(0, 1fr) 34px;
+  }
+
+  .tm-edit-subtask-time {
+    grid-column: 2 / -1;
+    width: calc(100% - 7px);
+    border-top: 1px solid #303a4d !important;
+  }
 }
 .tm-edit-subtask-add:focus-within {
   border-color: #5b91ec;
