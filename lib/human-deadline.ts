@@ -83,6 +83,10 @@ export function parseHumanDeadline(
   const preferredTime = clock.time ?? window.time;
   const text = window.text.toLowerCase().replace(/\b(by|the|of)\b/g, ' ').replace(/\s+/g, ' ').trim();
 
+  if (preferredTime && (!text || text === 'before')) {
+    return withDeadline(logicalNow, original, preferredTime);
+  }
+
   const relative = text.match(/^in\s+(\d+)\s+(minute|minutes|hour|hours|day|days|week|weeks)$/);
   if (relative) {
     const amount = Number(relative[1]);
