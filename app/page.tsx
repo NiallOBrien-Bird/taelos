@@ -1663,7 +1663,7 @@ function Navigation({
           onClick={() => onView('tasks')}
         >
           <BrandMark />
-          <span>Dudu</span>
+          <span>TÆLOS</span>
         </button>
         <button
           className="tm-sidebar-toggle"
@@ -4448,7 +4448,7 @@ export default function Home() {
           setLoadError(
             error instanceof Error
               ? error.message
-              : 'Dudu could not load your tasks.',
+              : 'TÆLOS could not load your tasks.',
           );
         }
       })
@@ -4637,7 +4637,7 @@ export default function Home() {
           <DialogHeader>
             <DialogTitle>Keyboard shortcuts</DialogTitle>
             <DialogDescription>
-              Move through Dudu and act on tasks without leaving the keyboard.
+              Move through TÆLOS and act on tasks without leaving the keyboard.
             </DialogDescription>
           </DialogHeader>
           <div className="tm-shortcut-groups">

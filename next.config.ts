@@ -28,7 +28,7 @@ const contentSecurityPolicy = [
 
 const nextConfig: NextConfig = {
   agentRules: false,
-  distDir: process.env.DUDU_NEXT_DIST_DIR ?? '.next',
+  distDir: process.env.TAELOS_NEXT_DIST_DIR ?? '.next',
   experimental: {
     useTypeScriptCli: false,
   },

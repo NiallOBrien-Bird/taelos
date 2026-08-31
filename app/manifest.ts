@@ -3,8 +3,8 @@ import type { MetadataRoute } from 'next';
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: '/',
-    name: 'Dudu — Personal Task Manager',
-    short_name: 'Dudu',
+    name: 'TÆLOS — Personal Task Manager',
+    short_name: 'TÆLOS',
     description:
       'A calm, private task manager for making progress visible one next step at a time.',
     start_url: '/',

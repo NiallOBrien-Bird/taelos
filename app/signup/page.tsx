@@ -58,7 +58,7 @@ export default function SignupPage() {
         setError(result.error ?? 'Could not complete your request. Please try again.');
       } else if (mode === 'signup') {
         setMessage(
-          'Check your email to confirm your account, then you can start using Dudu.',
+          'Check your email to confirm your account, then you can start using TÆLOS.',
         );
       } else {
         router.replace('/');
@@ -92,17 +92,17 @@ export default function SignupPage() {
   return (
     <main className="auth-page">
       <section className="auth-story" aria-labelledby="auth-story-title">
-        <Link className="auth-brand" href="/signup" aria-label="Dudu home">
+        <Link className="auth-brand" href="/signup" aria-label="TÆLOS home">
           <span>
             <CheckIcon />
           </span>
-          <strong>Dudu</strong>
+          <strong>TÆLOS</strong>
         </Link>
         <div className="auth-story-copy">
           <p className="auth-kicker">A quieter way to make progress</p>
           <h1 id="auth-story-title">Give every task a clear next step.</h1>
           <p>
-            Dudu keeps your work, deadlines, and daily momentum in one calm
+            TÆLOS keeps your work, deadlines, and daily momentum in one calm
             place.
           </p>
           <ul>
@@ -128,7 +128,7 @@ export default function SignupPage() {
             <span>
               <CheckIcon />
             </span>
-            Dudu
+            TÆLOS
           </div>
           <div className="auth-tabs" role="tablist" aria-label="Account access">
             <button
@@ -156,7 +156,7 @@ export default function SignupPage() {
               <LockKeyholeIcon />
             </span>
             <h2 id="auth-title">
-              {mode === 'signup' ? 'Start with Dudu' : 'Welcome back'}
+              {mode === 'signup' ? 'Start with TÆLOS' : 'Welcome back'}
             </h2>
             <p>
               {mode === 'signup'

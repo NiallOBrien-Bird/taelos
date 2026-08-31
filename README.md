@@ -1,6 +1,8 @@
-# Dudu
+# TÆLOS
 
 A personal task manager built with Next.js and Supabase.
+
+Production: [www.taelos.xyz](https://www.taelos.xyz/)
 
 ## Local setup
 

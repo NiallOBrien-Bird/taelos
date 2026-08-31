@@ -28,10 +28,14 @@ const jetBrainsMono = localFont({
 });
 
 export const metadata: Metadata = {
-  applicationName: 'Dudu',
-  title: 'Dudu — personal task manager',
+  metadataBase: new URL('https://www.taelos.xyz'),
+  applicationName: 'TÆLOS',
+  title: 'TÆLOS — personal task manager',
   description:
     'A calm, private task manager for making progress visible one next step at a time.',
+  alternates: {
+    canonical: '/',
+  },
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -44,7 +48,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Dudu',
+    title: 'TÆLOS',
   },
   formatDetection: {
     telephone: false,

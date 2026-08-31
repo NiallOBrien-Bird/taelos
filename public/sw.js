@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'dudu-shell-v1';
+const CACHE_VERSION = 'taelos-shell-v1';
 const OFFLINE_URL = '/offline';
 const PRECACHE_URLS = [
   OFFLINE_URL,
@@ -28,7 +28,10 @@ self.addEventListener('activate', (event) => {
           Promise.all(
             keys
               .filter(
-                (key) => key.startsWith('dudu-shell-') && key !== CACHE_VERSION,
+                (key) =>
+                  (key.startsWith('dudu-shell-') ||
+                    key.startsWith('taelos-shell-')) &&
+                  key !== CACHE_VERSION,
               )
               .map((key) => caches.delete(key)),
           ),

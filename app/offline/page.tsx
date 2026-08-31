@@ -13,7 +13,7 @@ export default function OfflinePage() {
         <p className="offline-kicker">Connection paused</p>
         <h1 id="offline-title">You’re offline</h1>
         <p>
-          Dudu couldn’t reach the network. Your private tasks were not cached on
+          TÆLOS couldn’t reach the network. Your private tasks were not cached on
           this device; reconnect, then try again.
         </p>
         <Link href="/">Try again</Link>

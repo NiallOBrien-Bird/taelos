@@ -1,12 +1,12 @@
 {
-  "name": "dudu",
+  "name": "taelos",
   "version": "0.1.0",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "DUDU_NEXT_DIST_DIR=.next-dev next dev --webpack",
+    "dev": "TAELOS_NEXT_DIST_DIR=.next-dev next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "oxlint",
