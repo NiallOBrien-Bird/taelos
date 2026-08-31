@@ -2842,6 +2842,16 @@ button {
   height: 18px;
 }
 .tm-settings-dialog {
+  /* Render from the document portal, above the application shell/sidebar. */
+  position: fixed !important;
+  top: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: 50% !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  translate: -50% -50% !important;
+  transform: none !important;
   width: min(420px, calc(100% - 32px));
   gap: 18px;
   padding: 22px;
@@ -2850,6 +2860,15 @@ button {
   background: var(--todo-canvas-raised);
   color: var(--todo-text);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+/* Keep the backdrop immediately beneath the settings dialog and soften the
+   app beneath it without affecting the other dialog surfaces. */
+body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
+  z-index: 999 !important;
+  background: rgba(3, 7, 18, 0.42);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 .tm-settings-heading {
   flex-direction: row;
