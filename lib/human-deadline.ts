@@ -83,7 +83,7 @@ export function parseHumanDeadline(
   const preferredTime = clock.time ?? window.time;
   const text = window.text.toLowerCase().replace(/\b(by|the|of)\b/g, ' ').replace(/\s+/g, ' ').trim();
 
-  if (preferredTime && (!text || text === 'before')) {
+  if (preferredTime && (!text || text === 'before' || text === 'this')) {
     return withDeadline(logicalNow, original, preferredTime);
   }
 

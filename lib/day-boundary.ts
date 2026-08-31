@@ -40,10 +40,11 @@ export function dueInstant(
   return due;
 }
 
-/** Keeps the old midnight behaviour while giving custom days a clear endpoint. */
+/** Returns the final minute before the user's next logical day begins. */
 export function endOfDayTime(dayEndTime = DEFAULT_DAY_END_TIME) {
   const boundary = normalizeDayEndTime(dayEndTime);
-  return boundary === DEFAULT_DAY_END_TIME ? '23:59' : boundary;
+  const endMinutes = (minutesSinceMidnight(boundary) + 24 * 60 - 1) % (24 * 60);
+  return `${String(Math.floor(endMinutes / 60)).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
 }
 
 export function formatClockTime(time: string) {
