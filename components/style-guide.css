@@ -196,7 +196,7 @@
 .sg-quick-actions > div { display: flex; gap: 6px; }
 .sg-quick-summary { display: inline-flex; align-items: center; gap: 5px; color: var(--todo-text-faint); font-size: 9px; }
 .sg-quick-summary svg { width: 12px; }
-.sg-subtask-dialog { width: min(430px, calc(100vw - 32px)); gap: 14px !important; padding: 20px !important; border: 1px solid var(--todo-border); background: var(--todo-canvas-raised); color: var(--todo-text); box-shadow: 0 24px 70px rgba(0,0,0,.5); }
+.sg-subtask-dialog { display: grid; width: min(430px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); gap: 14px !important; padding: 20px !important; overflow-y: auto; border: 1px solid var(--todo-border); border-radius: 12px; background: var(--todo-canvas-raised); color: var(--todo-text); box-shadow: 0 24px 70px rgba(0,0,0,.5); }
 .sg-subtask-dialog [data-slot='dialog-title'] { font: 650 18px var(--todo-font-display); }
 .sg-subtask-dialog [data-slot='dialog-description'] { color: var(--todo-text-muted); font-size: 11px; line-height: 1.5; }
 .sg-subtask-dialog-field { display: grid; gap: 7px; color: var(--todo-text-muted); font-size: 10px; font-weight: 650; }

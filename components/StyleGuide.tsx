@@ -762,12 +762,7 @@ export function QuickAddBar({
             <input ref={subtaskTitleInputRef} value={subtaskTitle} onChange={(event) => setSubtaskTitle(event.target.value)} onKeyDown={(event) => {
               if (event.key === 'Enter') {
                 event.preventDefault();
-                void submit({
-                  title: subtaskTitle,
-                  dueDate: subtaskDueDate || undefined,
-                  dueTime: subtaskDueTime || undefined,
-                  dueLabel: subtaskDueLabel || undefined,
-                });
+                addSubtask();
               } else if (event.key === 'Tab' && !event.shiftKey) {
                 event.preventDefault();
                 setSubtaskExactDateOpen(true);
@@ -791,12 +786,7 @@ export function QuickAddBar({
               <label>Time <span>optional</span><input ref={subtaskTimeInputRef} type="time" value={subtaskDueTime} onChange={(event) => setSubtaskDueTime(event.target.value)} onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault();
-                  void submit({
-                    title: subtaskTitle,
-                    dueDate: subtaskDueDate || undefined,
-                    dueTime: subtaskDueTime || undefined,
-                    dueLabel: subtaskDueLabel || undefined,
-                  });
+                  addSubtask();
                 } else if (event.key === 'Tab' && !event.shiftKey && subtaskTitle.trim()) {
                   event.preventDefault();
                   addSubtask();
