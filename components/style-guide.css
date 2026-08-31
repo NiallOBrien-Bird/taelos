@@ -250,7 +250,7 @@ body:has(.sg-subtask-dialog) [data-slot='dialog-overlay'] { z-index: 999 !import
 .sg-empty-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 13px; color: var(--todo-accent-bright); background: var(--todo-accent-soft); }
 .sg-empty-state h3, .sg-composition-grid h3 { margin: 14px 0 6px; font: 620 16px var(--todo-font-display); }
 .sg-empty-state p { max-width: 240px; margin: 0 0 16px; color: var(--todo-text-faint); font-size: 11px; line-height: 1.55; }
-.sg-modal-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: rgba(1,3,12,.75); backdrop-filter: blur(10px); animation: sg-fade .18s ease both; }
+.sg-modal-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(1,3,12,.75); backdrop-filter: blur(10px); animation: sg-fade .18s ease both; }
 .sg-modal { position: relative; inset: auto; width: min(430px, 100%); margin: 0; color: var(--todo-text); animation: sg-modal-in .22s ease both; }
 .sg-modal-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 13px; color: var(--todo-danger); background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.18); }
 .sg-modal h2 { margin: 18px 0 8px; font: 650 22px var(--todo-font-display); letter-spacing: -.02em; }

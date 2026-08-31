@@ -3565,7 +3565,7 @@ body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
 .tm-category-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 20;
+  z-index: 1000;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -3855,7 +3855,7 @@ body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
 .tm-work-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 30;
+  z-index: 1000;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -4011,7 +4011,7 @@ body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
 .tm-edit-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 35;
+  z-index: 1000;
   display: grid;
   place-items: center;
   padding: 20px;
@@ -4410,7 +4410,7 @@ body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
 .tm-defer-dialog-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 38;
+  z-index: 1000;
   display: grid;
   place-items: center;
   padding: 20px;
