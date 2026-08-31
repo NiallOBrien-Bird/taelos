@@ -6799,6 +6799,108 @@ button {
   background: var(--todo-surface-hover);
 }
 
+.tm-app [data-keyboard-task]:focus-visible {
+  outline: 2px solid var(--todo-accent-bright);
+  outline-offset: 2px;
+}
+
+.tm-app [data-keyboard-task-row]:focus-within {
+  background: var(--todo-surface-hover);
+}
+
+.tm-keyboard-task-title {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tm-nav-key {
+  margin-left: auto;
+  color: var(--todo-text-faint);
+  font: 500 9px var(--todo-font-mono);
+}
+
+.tm-sidebar.is-collapsed .tm-nav-key {
+  display: none;
+}
+
+.tm-shortcuts-dialog {
+  width: min(620px, calc(100vw - 32px));
+  gap: 20px;
+}
+
+.tm-shortcut-groups {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.tm-shortcut-groups h2 {
+  margin: 0 0 10px;
+  color: var(--todo-text-faint);
+  font: 700 10px var(--todo-font-body);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.tm-shortcut-groups dl,
+.tm-shortcut-groups dd {
+  margin: 0;
+}
+
+.tm-shortcut-groups dl {
+  display: grid;
+  gap: 10px;
+}
+
+.tm-shortcut-groups dl > div {
+  display: grid;
+  gap: 5px;
+}
+
+.tm-shortcut-groups dt {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tm-shortcut-groups dd,
+.tm-shortcuts-footnote {
+  color: var(--todo-text-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.tm-shortcuts-dialog kbd {
+  min-width: 24px;
+  min-height: 23px;
+  display: inline-grid;
+  place-items: center;
+  padding: 2px 6px;
+  border: 1px solid var(--todo-border-strong);
+  border-radius: 6px;
+  background: var(--todo-canvas-raised);
+  color: var(--todo-text);
+  box-shadow: 0 2px 0 var(--todo-border);
+  font: 600 10px var(--todo-font-mono);
+}
+
+.tm-shortcuts-footnote {
+  margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--todo-border);
+}
+
+@media (max-width: 620px) {
+  .tm-shortcut-groups {
+    grid-template-columns: 1fr;
+  }
+}
+
 .tm-app .tm-task-row:focus-within .tm-row-actions .sg-icon-button {
   opacity: 1;
 }

@@ -1682,6 +1682,7 @@ function Navigation({
               type="button"
               className={view === item ? 'active' : ''}
               aria-current={view === item ? 'page' : undefined}
+              aria-keyshortcuts={item === 'tasks' ? '1' : item === 'timeline' ? '2' : '3'}
               onClick={() => onView(item)}
               title={
                 collapsed ? item[0].toUpperCase() + item.slice(1) : undefined
@@ -1689,6 +1690,9 @@ function Navigation({
             >
               <NavIcon view={item} />
               <span>{item[0].toUpperCase() + item.slice(1)}</span>
+              <kbd className="tm-nav-key">
+                {item === 'tasks' ? '1' : item === 'timeline' ? '2' : '3'}
+              </kbd>
               {item === 'tasks' && <small>{activeCount}</small>}
             </button>
           ))}
@@ -1790,6 +1794,7 @@ function CompletionCircle({
       className={`tm-completion${workLevel ? ` has-work work-level-${workLevel}` : ''}`}
     >
       <input
+        data-keyboard-complete
         type="checkbox"
         checked={checked}
         onChange={onChange}
@@ -2152,6 +2157,7 @@ function TaskGridRow({
   return (
     <div
       className={`tm-row-wrap${depth ? ' child' : ''}${row.completed ? ' completed' : ''}`}
+      data-keyboard-task-row
     >
       <div
         className="tm-task-row"
@@ -2178,7 +2184,16 @@ function TaskGridRow({
           <button
             type="button"
             className="tm-title-button"
+            data-keyboard-task
+            data-task-key={row.id}
+            aria-keyshortcuts="Enter"
             onClick={row.subtasks.length ? onToggleExpand : onChip}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                onEdit();
+              }
+            }}
             aria-expanded={row.subtasks.length ? expanded : undefined}
           >
             <span>{row.title}</span>
@@ -2470,15 +2485,28 @@ function TaskEditDialog({
   );
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
   const titleRef = useRef<HTMLInputElement>(null);
+  const editDeadlineRef = useRef<HTMLInputElement>(null);
+  const editTimeRef = useRef<HTMLInputElement>(null);
+  const returnFocusRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
 
   useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    returnFocusRef.current = document.activeElement as HTMLElement | null;
     titleRef.current?.focus();
+    titleRef.current?.select();
     const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
-  }, [onClose]);
+    return () => {
+      window.removeEventListener('keydown', closeOnEscape);
+      requestAnimationFrame(() => returnFocusRef.current?.focus());
+    };
+  }, [row.id]);
 
   const submit = (event: { preventDefault: () => void }) => {
     event.preventDefault();
@@ -2585,6 +2613,40 @@ function TaskEditDialog({
               required
             />
           </label>
+          <div className="tm-edit-dialog-field">
+            <span>Category</span>
+            <Select
+              value={category}
+              onValueChange={(value) => {
+                if (value) setCategory(value);
+              }}
+            >
+              <SelectTrigger
+                className="tm-site-select-trigger"
+                aria-label="Task category"
+                onKeyDown={(event) => {
+                  if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    editDeadlineRef.current?.focus();
+                  }
+                }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="tm-site-select-content" sideOffset={6}>
+                {Object.entries(categories).map(([name, meta]) => (
+                  <SelectItem
+                    key={name}
+                    value={name}
+                    className="tm-site-select-item"
+                  >
+                    <CategoryIcon icon={meta.icon} />
+                    {meta.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="sg-human-deadline tm-edit-human-deadline">
             <label htmlFor={`edit-deadline-${row.id}`}>
               When does this need to happen?
@@ -2594,6 +2656,7 @@ function TaskEditDialog({
             >
               <CalendarIcon />
               <input
+                ref={editDeadlineRef}
                 id={`edit-deadline-${row.id}`}
                 value={deadlineText}
                 onChange={(event) => {
@@ -2605,6 +2668,12 @@ function TaskEditDialog({
                   if (event.key === 'Enter') {
                     event.preventDefault();
                     applyHumanDeadline(deadlineText);
+                    submit(event);
+                  } else if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    applyHumanDeadline(deadlineText);
+                    setExactDeadlineOpen(true);
+                    requestAnimationFrame(() => editTimeRef.current?.focus());
                   }
                 }}
                 placeholder="Tomorrow at 9am, this weekend…"
@@ -2688,42 +2757,17 @@ function TaskEditDialog({
                 <label>
                   Time <span>optional</span>
                   <input
+                    ref={editTimeRef}
                     type="time"
                     value={dueTime}
                     onChange={(event) => setDueTime(event.target.value)}
-                    disabled={!dueDate}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') submit(event);
+                    }}
                   />
                 </label>
               </div>
             )}
-          </div>
-          <div className="tm-edit-dialog-field">
-            <span>Category</span>
-            <Select
-              value={category}
-              onValueChange={(value) => {
-                if (value) setCategory(value);
-              }}
-            >
-              <SelectTrigger
-                className="tm-site-select-trigger"
-                aria-label="Task category"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="tm-site-select-content" sideOffset={6}>
-                {Object.entries(categories).map(([name, meta]) => (
-                  <SelectItem
-                    key={name}
-                    value={name}
-                    className="tm-site-select-item"
-                  >
-                    <CategoryIcon icon={meta.icon} />
-                    {meta.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
           {allowSubtasks && (
             <section
@@ -3576,6 +3620,13 @@ function TasksPage({
     const next = [task, ...tasks];
     onChange(next);
     void taskRepository.replace(next);
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        document
+          .querySelector<HTMLElement>(`[data-task-key="${CSS.escape(task.id)}"]`)
+          ?.focus(),
+      ),
+    );
   };
   return (
     <div className="tm-tasks-page">
@@ -3856,6 +3907,8 @@ function ShelfPage({
   dayEndTime: string;
 }) {
   const shelvedTasks = tasks.filter((task) => task.shelved);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [editorCategories] = useState(() => loadCategoryConfig().categories);
   const restore = (id: string) => {
     const next = tasks.map((task) =>
       task.id === id ? { ...task, shelved: false } : task,
@@ -3902,9 +3955,24 @@ function ShelfPage({
               label: task.category,
             };
             return (
-              <article className="tm-shelf-item" key={task.id}>
+              <article
+                className="tm-shelf-item"
+                key={task.id}
+                data-keyboard-task-row
+              >
                 <div className="tm-shelf-item-main">
-                  <h2>{task.title}</h2>
+                  <h2>
+                    <button
+                      type="button"
+                      className="tm-keyboard-task-title"
+                      data-keyboard-task
+                      data-task-key={task.id}
+                      aria-keyshortcuts="Enter"
+                      onClick={() => setEditTask(task)}
+                    >
+                      {task.title}
+                    </button>
+                  </h2>
                   <p>
                     <span title={category.label}>
                       <CategoryIcon icon={category.icon} />
@@ -3951,6 +4019,22 @@ function ShelfPage({
           </p>
         </div>
       )}
+      {editTask && (
+        <TaskEditDialog
+          row={editTask}
+          categories={editorCategories}
+          dayEndTime={dayEndTime}
+          allowSubtasks
+          onSave={(changes) => {
+            const next = tasks.map((task) =>
+              task.id === editTask.id ? { ...task, ...changes } : task,
+            );
+            onChange(next);
+            void taskRepository.replace(next);
+          }}
+          onClose={() => setEditTask(null)}
+        />
+      )}
     </section>
   );
 }
@@ -3973,6 +4057,8 @@ function TimelinePage({
 }) {
   const [deferTask, setDeferTask] = useState<Task | null>(null);
   const [chipTask, setChipTask] = useState<Task | null>(null);
+  const [editTask, setEditTask] = useState<Task | null>(null);
+  const [editorCategories] = useState(() => loadCategoryConfig().categories);
   const [categoryFilter, setCategoryFilter] = useState('All');
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
@@ -4222,7 +4308,11 @@ function TimelinePage({
                       ? Math.min(9, 4 + loggedWorkSessions)
                       : 0;
                   return (
-                    <article className="tm-timeline-item" key={task.id}>
+                    <article
+                      className="tm-timeline-item"
+                      key={task.id}
+                      data-keyboard-task-row
+                    >
                       <div className="tm-title-cell">
                         <CompletionCircle
                           checked={false}
@@ -4230,7 +4320,18 @@ function TimelinePage({
                           label={`Mark ${task.title} complete`}
                           onChange={() => toggleComplete(task)}
                         />
-                        <h3>{task.title}</h3>
+                        <h3>
+                          <button
+                            type="button"
+                            className="tm-keyboard-task-title"
+                            data-keyboard-task
+                            data-task-key={task.id}
+                            aria-keyshortcuts="Enter"
+                            onClick={() => setEditTask(task)}
+                          >
+                            {task.title}
+                          </button>
+                        </h3>
                       </div>
                       <WorkDoneCell
                         row={task}
@@ -4301,15 +4402,35 @@ function TimelinePage({
           onClose={() => setChipTask(null)}
         />
       )}
+      {editTask && (
+        <TaskEditDialog
+          row={editTask}
+          categories={editorCategories}
+          dayEndTime={dayEndTime}
+          allowSubtasks
+          onSave={(changes) => {
+            const next = tasks.map((task) =>
+              task.id === editTask.id ? { ...task, ...changes } : task,
+            );
+            onChange(next);
+            void taskRepository.replace(next);
+          }}
+          onClose={() => setEditTask(null)}
+        />
+      )}
     </section>
   );
 }
 
 export default function Home() {
   const [view, setView] = useState<View>('tasks');
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const taskHistory = useRef<Task[][]>([]);
+  const lastSelectedTask = useRef<Partial<Record<View, string>>>({});
+  const pendingViewFocus = useRef(false);
+  const pendingQuickAddFocus = useRef(false);
   const [undoCount, setUndoCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
@@ -4393,6 +4514,109 @@ export default function Home() {
     window.addEventListener('keydown', handleUndoShortcut);
     return () => window.removeEventListener('keydown', handleUndoShortcut);
   });
+  useEffect(() => {
+    const rememberSelection = (event: FocusEvent) => {
+      const row = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+        '[data-keyboard-task]',
+      );
+      if (row?.dataset.taskKey) lastSelectedTask.current[view] = row.dataset.taskKey;
+    };
+    window.addEventListener('focusin', rememberSelection);
+    return () => window.removeEventListener('focusin', rememberSelection);
+  }, [view]);
+  useEffect(() => {
+    if (!pendingViewFocus.current && !pendingQuickAddFocus.current) return;
+    const frame = window.requestAnimationFrame(() => {
+      if (pendingQuickAddFocus.current && view === 'tasks') {
+        pendingQuickAddFocus.current = false;
+        document.querySelector<HTMLInputElement>('[data-quick-add-title]')?.focus();
+        return;
+      }
+      if (!pendingViewFocus.current) return;
+      pendingViewFocus.current = false;
+      const remembered = lastSelectedTask.current[view];
+      const rows = Array.from(
+        document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
+      );
+      (rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0])?.focus();
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [view, loaded]);
+  useEffect(() => {
+    const handleBrowseShortcut = (event: KeyboardEvent) => {
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      const target = event.target as HTMLElement | null;
+      const isTyping = Boolean(
+        target?.isContentEditable ||
+          target?.closest('input, textarea, select, [contenteditable="true"]'),
+      );
+      if (isTyping || document.querySelector('[aria-modal="true"]')) return;
+
+      const nextView =
+        event.key === '1'
+          ? 'tasks'
+          : event.key === '2'
+            ? 'timeline'
+            : event.key === '3'
+              ? 'shelf'
+              : null;
+      if (nextView) {
+        event.preventDefault();
+        pendingViewFocus.current = true;
+        if (nextView === view) {
+          pendingViewFocus.current = false;
+          const remembered = lastSelectedTask.current[view];
+          const rows = Array.from(
+            document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
+          );
+          (rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0])?.focus();
+        } else {
+          setView(nextView);
+        }
+        return;
+      }
+      if (event.key.toLowerCase() === 'n') {
+        event.preventDefault();
+        pendingQuickAddFocus.current = true;
+        if (view !== 'tasks') setView('tasks');
+        else {
+          pendingQuickAddFocus.current = false;
+          document.querySelector<HTMLInputElement>('[data-quick-add-title]')?.focus();
+        }
+        return;
+      }
+      if (event.key === '?') {
+        event.preventDefault();
+        setShortcutsOpen(true);
+        return;
+      }
+
+      const rows = Array.from(
+        document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
+      );
+      if (!rows.length) return;
+      const current = target?.closest<HTMLElement>('[data-keyboard-task]');
+      const currentIndex = current ? rows.indexOf(current) : -1;
+      if (event.key.toLowerCase() === 'j' || event.key === 'ArrowDown') {
+        event.preventDefault();
+        rows[Math.min(currentIndex + 1, rows.length - 1)]?.focus();
+      } else if (event.key.toLowerCase() === 'k' || event.key === 'ArrowUp') {
+        event.preventDefault();
+        rows[currentIndex < 0 ? rows.length - 1 : Math.max(currentIndex - 1, 0)]?.focus();
+      } else if (event.key === ' ' && current) {
+        const completion = current
+          .closest<HTMLElement>('[data-keyboard-task-row]')
+          ?.querySelector<HTMLInputElement>('[data-keyboard-complete]');
+        if (completion) {
+          event.preventDefault();
+          completion.click();
+          current.focus();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleBrowseShortcut);
+    return () => window.removeEventListener('keydown', handleBrowseShortcut);
+  }, [view]);
   if (view === 'style-guide')
     return (
       <div className="app-style-route todo-style-guide">
@@ -4408,6 +4632,47 @@ export default function Home() {
     );
   return (
     <main className={`tm-app tm-theme-${theme} todo-style-guide`}>
+      <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
+        <DialogContent className="tm-shortcuts-dialog">
+          <DialogHeader>
+            <DialogTitle>Keyboard shortcuts</DialogTitle>
+            <DialogDescription>
+              Move through Dudu and act on tasks without leaving the keyboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="tm-shortcut-groups">
+            <section>
+              <h2>Navigate</h2>
+              <dl>
+                <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Tasks, Timeline, Shelf</dd></div>
+                <div><dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>Next or previous task</dd></div>
+                <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Next or previous task</dd></div>
+              </dl>
+            </section>
+            <section>
+              <h2>Tasks</h2>
+              <dl>
+                <div><dt><kbd>N</kbd></dt><dd>Add a task</dd></div>
+                <div><dt><kbd>Enter</kbd></dt><dd>Edit the selected task</dd></div>
+                <div><dt><kbd>Space</kbd></dt><dd>Complete the selected task</dd></div>
+                <div><dt><kbd>⌘/Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
+              </dl>
+            </section>
+            <section>
+              <h2>Create and edit</h2>
+              <dl>
+                <div><dt><kbd>Enter</kbd></dt><dd>Finish and save</dd></div>
+                <div><dt><kbd>Tab</kbd></dt><dd>Add another detail</dd></div>
+                <div><dt><kbd>Shift</kbd> <kbd>Tab</kbd></dt><dd>Move to the previous detail</dd></div>
+                <div><dt><kbd>Esc</kbd></dt><dd>Close or cancel</dd></div>
+              </dl>
+            </section>
+          </div>
+          <p className="tm-shortcuts-footnote">
+            Shortcuts pause while you are typing. Press <kbd>?</kbd> anytime in browse mode to reopen this guide.
+          </p>
+        </DialogContent>
+      </Dialog>
       <Navigation
         view={view}
         activeCount={tasks.filter((task) => !task.completed).length}

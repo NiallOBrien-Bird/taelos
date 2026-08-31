@@ -3,6 +3,7 @@
 import {
   forwardRef,
   useId,
+  useRef,
   useState,
   type ButtonHTMLAttributes,
   type InputHTMLAttributes,
@@ -416,6 +417,11 @@ export function QuickAddBar({
   inputRef,
 }: QuickAddBarProps) {
   const subtaskPanelId = useId();
+  const categoryTriggerRef = useRef<HTMLButtonElement>(null);
+  const deadlineInputRef = useRef<HTMLInputElement>(null);
+  const dueTimeInputRef = useRef<HTMLInputElement>(null);
+  const subtaskTitleInputRef = useRef<HTMLInputElement>(null);
+  const subtaskTimeInputRef = useRef<HTMLInputElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [title, setTitle] = useState('');
   const [dueDate, setDueDate] = useState('');
@@ -486,15 +492,26 @@ export function QuickAddBar({
     setExpanded(false);
   };
 
-  const submit = async () => {
+  const submit = async (draftSubtask?: {
+    title: string;
+    dueDate?: string;
+    dueTime?: string;
+    dueLabel?: string;
+  }) => {
     if (!title.trim()) return;
+    const submittedDeadline = deadlineText
+      ? parseHumanDeadline(deadlineText, new Date(), dayEndTime)
+      : undefined;
+    const submittedSubtasks = draftSubtask?.title.trim()
+      ? [...subtasks, { id: nextSubtaskId, ...draftSubtask }]
+      : subtasks;
     await onCreate({
       title: title.trim(),
-      dueDate: dueDate || undefined,
-      dueTime: dueTime || undefined,
-      dueLabel: dueLabel || undefined,
+      dueDate: dueDate || submittedDeadline?.date,
+      dueTime: dueTime || submittedDeadline?.time,
+      dueLabel: dueLabel || submittedDeadline?.label,
       category,
-      subtasks: subtasks
+      subtasks: submittedSubtasks
         .map((subtask) => ({
           title: subtask.title.trim(),
           dueDate: subtask.dueDate,
@@ -545,12 +562,18 @@ export function QuickAddBar({
     <GlassPanel className={`sg-quick-add${expanded ? ' expanded' : ''}`} padding="compact">
       <div className="sg-quick-main">
         <input
+          data-quick-add-title
+          aria-keyshortcuts="N"
           ref={inputRef}
           value={title}
           onChange={(event) => setTitle(event.target.value)}
           onFocus={() => setExpanded(true)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) void submit();
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              setExpanded(true);
+              categoryTriggerRef.current?.focus();
+            }
             if (event.key === 'Escape') setExpanded(false);
           }}
           aria-label="Task title"
@@ -563,8 +586,19 @@ export function QuickAddBar({
           }}
         >
           <SelectTrigger
+            ref={categoryTriggerRef}
             className="tm-site-select-trigger tm-site-select-trigger-compact sg-quick-category"
             aria-label="Task category"
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                void submit();
+              } else if (event.key === 'Tab' && !event.shiftKey) {
+                event.preventDefault();
+                setScheduleOpen(true);
+                requestAnimationFrame(() => deadlineInputRef.current?.focus());
+              }
+            }}
           >
             <SelectValue />
           </SelectTrigger>
@@ -605,10 +639,21 @@ export function QuickAddBar({
               <label htmlFor={`${subtaskPanelId}-deadline`}>When does this need to happen?</label>
               <div className={`sg-deadline-input${deadlineTouched && deadlineText && !resolvedDeadline ? ' invalid' : ''}`}>
                 <CalendarIcon />
-                <input id={`${subtaskPanelId}-deadline`} value={deadlineText}
+                <input ref={deadlineInputRef} id={`${subtaskPanelId}-deadline`} value={deadlineText}
                   onChange={(event) => { setDeadlineText(event.target.value); setDeadlineTouched(false); }}
                   onBlur={() => applyHumanDeadline(deadlineText)}
-                  onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); applyHumanDeadline(deadlineText); } }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      applyHumanDeadline(deadlineText);
+                      void submit();
+                    } else if (event.key === 'Tab' && !event.shiftKey) {
+                      event.preventDefault();
+                      applyHumanDeadline(deadlineText);
+                      setExactDeadlineOpen(true);
+                      requestAnimationFrame(() => dueTimeInputRef.current?.focus());
+                    }
+                  }}
                   placeholder="Tomorrow at 9am, this weekend…" aria-describedby={`${subtaskPanelId}-deadline-help`}
                   aria-invalid={deadlineTouched && !!deadlineText && !resolvedDeadline} />
                 {deadlineText && <button type="button" aria-label="Clear deadline" onClick={() => applyHumanDeadline('')}>×</button>}
@@ -628,7 +673,17 @@ export function QuickAddBar({
                   const value = event.target.value;
                   setDueDate(value); setDueLabel(value ? 'Exact date' : ''); setDeadlineText(value);
                 }} /></label>
-                <label>Time <span>optional</span><input type="time" value={dueTime} onChange={(event) => setDueTime(event.target.value)} /></label>
+                <label>Time <span>optional</span><input ref={dueTimeInputRef} type="time" value={dueTime} onChange={(event) => setDueTime(event.target.value)} onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    void submit();
+                  } else if (event.key === 'Tab' && !event.shiftKey) {
+                    event.preventDefault();
+                    setSubtasksOpen(true);
+                    setSubtaskDialogOpen(true);
+                    requestAnimationFrame(() => subtaskTitleInputRef.current?.focus());
+                  }
+                }} /></label>
               </div>}
             </div>
           )}
@@ -704,7 +759,21 @@ export function QuickAddBar({
           </DialogHeader>
           <label className="sg-subtask-dialog-field">
             Subtask name
-            <input value={subtaskTitle} onChange={(event) => setSubtaskTitle(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') { event.preventDefault(); addSubtask(); } }} placeholder="Describe the next step" />
+            <input ref={subtaskTitleInputRef} value={subtaskTitle} onChange={(event) => setSubtaskTitle(event.target.value)} onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                void submit({
+                  title: subtaskTitle,
+                  dueDate: subtaskDueDate || undefined,
+                  dueTime: subtaskDueTime || undefined,
+                  dueLabel: subtaskDueLabel || undefined,
+                });
+              } else if (event.key === 'Tab' && !event.shiftKey) {
+                event.preventDefault();
+                setSubtaskExactDateOpen(true);
+                requestAnimationFrame(() => subtaskTimeInputRef.current?.focus());
+              }
+            }} placeholder="Describe the next step" />
           </label>
           <div className="sg-human-deadline sg-subtask-deadline">
             <label htmlFor={`${subtaskPanelId}-subtask-deadline`}>Due date <span>optional</span></label>
@@ -719,7 +788,24 @@ export function QuickAddBar({
             </div>
             {subtaskExactDateOpen && <div className="sg-exact-deadline">
               <label>Date<input type="date" value={subtaskDueDate} onChange={(event) => { const value = event.target.value; setSubtaskDueDate(value); setSubtaskDueLabel(value ? 'Exact date' : ''); setSubtaskDeadlineText(value); }} /></label>
-              <label>Time <span>optional</span><input type="time" value={subtaskDueTime} onChange={(event) => setSubtaskDueTime(event.target.value)} disabled={!subtaskDueDate} /></label>
+              <label>Time <span>optional</span><input ref={subtaskTimeInputRef} type="time" value={subtaskDueTime} onChange={(event) => setSubtaskDueTime(event.target.value)} onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault();
+                  void submit({
+                    title: subtaskTitle,
+                    dueDate: subtaskDueDate || undefined,
+                    dueTime: subtaskDueTime || undefined,
+                    dueLabel: subtaskDueLabel || undefined,
+                  });
+                } else if (event.key === 'Tab' && !event.shiftKey && subtaskTitle.trim()) {
+                  event.preventDefault();
+                  addSubtask();
+                  requestAnimationFrame(() => {
+                    setSubtaskDialogOpen(true);
+                    requestAnimationFrame(() => subtaskTitleInputRef.current?.focus());
+                  });
+                }
+              }} /></label>
             </div>}
           </div>
           <div className="sg-subtask-dialog-actions">
