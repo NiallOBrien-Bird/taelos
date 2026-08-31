@@ -33,7 +33,9 @@ function DropdownMenuContent({
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
+        data-slot="dropdown-menu-positioner"
         className="isolate z-[1100] outline-none"
+        style={{ zIndex: 1100 }}
         align={align}
         alignOffset={alignOffset}
         side={side}
