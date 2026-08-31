@@ -2850,8 +2850,8 @@ button {
   left: 50% !important;
   z-index: 1000 !important;
   margin: 0 !important;
-  translate: -50% -50% !important;
-  transform: none !important;
+  translate: none !important;
+  transform: translate(-50%, -50%) !important;
   width: min(420px, calc(100% - 32px));
   gap: 18px;
   padding: 22px;
@@ -2860,6 +2860,46 @@ button {
   background: var(--todo-canvas-raised);
   color: var(--todo-text);
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+}
+
+.tm-settings-dialog > [data-slot='dialog-close'] {
+  position: absolute !important;
+  top: 12px !important;
+  right: 12px !important;
+  bottom: auto !important;
+  left: auto !important;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--todo-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--todo-text-muted);
+  cursor: pointer;
+}
+
+.tm-settings-dialog > [data-slot='dialog-close']:hover {
+  border-color: var(--todo-accent-border);
+  background: var(--todo-accent-soft);
+  color: var(--todo-accent-bright);
+}
+
+.tm-settings-dialog > [data-slot='dialog-close'] svg {
+  width: 16px;
+  height: 16px;
+}
+
+.tm-settings-dialog > [data-slot='dialog-close'] .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* Keep the backdrop immediately beneath the settings dialog and soften the
@@ -6585,17 +6625,17 @@ body:has(.tm-settings-dialog) [data-slot='dialog-overlay'] {
   }
 
   .tm-settings-dialog {
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
     width: 100%;
     max-width: none;
     height: 100dvh;
     max-height: none;
-    translate: 0 0;
+    translate: none !important;
     padding: 14px 14px max(20px, env(safe-area-inset-bottom));
-    transform: none;
+    transform: none !important;
     overflow-y: auto;
     border: 0;
     border-radius: 0;
