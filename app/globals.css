@@ -4085,8 +4085,7 @@ button {
   color: #c8d0dc;
   font-size: 12px;
 }
-.tm-edit-dialog-field input,
-.tm-edit-category-select {
+.tm-edit-dialog-field input {
   width: 100%;
   height: 42px;
   min-width: 0;
@@ -4098,8 +4097,7 @@ button {
   color: #edf1f7;
   font: inherit;
 }
-.tm-edit-dialog-field input:focus,
-.tm-edit-category-select:focus {
+.tm-edit-dialog-field input:focus {
   border-color: #5b91ec;
   box-shadow: 0 0 0 3px rgba(91, 145, 236, 0.16);
 }

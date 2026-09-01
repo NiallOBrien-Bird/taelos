@@ -2631,21 +2631,41 @@ function TaskEditDialog({
           </label>
           <div className="tm-edit-dialog-field">
             <label htmlFor={`edit-category-${row.id}`}>Category</label>
-            <select
-              id={`edit-category-${row.id}`}
-              className="tm-edit-category-select"
+            <Select
               value={category}
-              onChange={(event) => setCategory(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') submit(event);
+              onValueChange={(value) => {
+                if (value) setCategory(value);
               }}
             >
-              {Object.entries(categories).map(([name, meta]) => (
-                <option key={name} value={name}>
-                  {meta.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                id={`edit-category-${row.id}`}
+                className="tm-site-select-trigger"
+                aria-label="Task category"
+              >
+                <span className="tm-site-select-value">
+                  <CategoryIcon
+                    icon={categories[category]?.icon ?? category}
+                  />
+                  <span>{categories[category]?.label ?? category}</span>
+                </span>
+              </SelectTrigger>
+              <SelectContent
+                className="tm-site-select-content"
+                align="start"
+                sideOffset={6}
+              >
+                {Object.entries(categories).map(([name, meta]) => (
+                  <SelectItem
+                    key={name}
+                    value={name}
+                    className="tm-site-select-item"
+                  >
+                    <CategoryIcon icon={meta.icon} />
+                    <span>{meta.label}</span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="sg-human-deadline tm-edit-human-deadline">
             <label htmlFor={`edit-deadline-${row.id}`}>
