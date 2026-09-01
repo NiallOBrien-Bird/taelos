@@ -114,8 +114,8 @@ export default function SignupPage() {
     <main className="auth-page">
       <section className="auth-story" aria-labelledby="auth-story-title">
         <Link className="auth-brand" href="/signup" aria-label="TÆLOS home">
-          <span>
-            <CheckIcon />
+          <span className="auth-brand-mark" aria-hidden="true">
+            <img src="/favicon.svg?v=3" alt="" />
           </span>
           <strong>TÆLOS</strong>
         </Link>
@@ -146,8 +146,8 @@ export default function SignupPage() {
       <section className="auth-panel" aria-labelledby="auth-title">
         <div className="auth-card">
           <div className="auth-mobile-brand">
-            <span>
-              <CheckIcon />
+            <span className="auth-brand-mark" aria-hidden="true">
+              <img src="/favicon.svg?v=3" alt="" />
             </span>
             TÆLOS
           </div>

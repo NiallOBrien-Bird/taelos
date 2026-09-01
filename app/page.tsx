@@ -1627,7 +1627,7 @@ function NavIcon({ view }: { view: View }) {
 function BrandMark() {
   return (
     <span className="tm-brand-mark">
-      <CheckIcon />
+      <img src="/favicon.svg?v=3" alt="" aria-hidden="true" />
     </span>
   );
 }

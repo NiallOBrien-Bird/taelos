@@ -19,6 +19,14 @@ const outfit = localFont({
   display: 'swap',
 });
 
+const unbounded = localFont({
+  src: './fonts/unbounded-600.ttf',
+  variable: '--font-unbounded',
+  weight: '600',
+  style: 'normal',
+  display: 'swap',
+});
+
 const jetBrainsMono = localFont({
   src: './fonts/jetbrains-mono-latin.woff2',
   variable: '--font-jetbrains',
@@ -39,11 +47,12 @@ export const metadata: Metadata = {
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
-      { url: '/favicon.svg', type: 'image/svg+xml' },
-      { url: '/icon-192.png', sizes: '192x192', type: 'image/png' },
-      { url: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+      { url: '/favicon.svg?v=3', type: 'image/svg+xml' },
+      { url: '/icon-192.png?v=3', sizes: '192x192', type: 'image/png' },
+      { url: '/icon-512.png?v=3', sizes: '512x512', type: 'image/png' },
     ],
-    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180' }],
+    shortcut: [{ url: '/favicon.svg?v=3', type: 'image/svg+xml' }],
+    apple: [{ url: '/apple-touch-icon.png?v=3', sizes: '180x180' }],
   },
   appleWebApp: {
     capable: true,
@@ -71,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${outfit.variable} ${jetBrainsMono.variable} antialiased`}
+        className={`${inter.variable} ${outfit.variable} ${unbounded.variable} ${jetBrainsMono.variable} antialiased`}
       >
         {children}
         <ServiceWorkerRegistration />

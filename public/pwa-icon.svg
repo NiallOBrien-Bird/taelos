@@ -1,18 +1,6 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="background" x1="72" y1="44" x2="444" y2="474" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#111A3D"/>
-      <stop offset="1" stop-color="#06091A"/>
-    </linearGradient>
-    <filter id="shadow" x="82" y="82" width="348" height="348" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#000000" flood-opacity="0.28"/>
-    </filter>
-  </defs>
-  <rect width="512" height="512" rx="112" fill="url(#background)"/>
-  <g filter="url(#shadow)">
-    <path d="M374 318.182C374 349.008 349.008 374 318.182 374H272V256H318.182C349.008 256 374 280.992 374 311.818V318.182Z" fill="#68C4FF"/>
-    <rect x="304" y="138" width="70" height="70" rx="20" fill="#0C79D8"/>
-    <rect x="138" y="304" width="70" height="70" rx="20" fill="#0C79D8"/>
-    <path d="M256 256H193.818C162.992 256 138 231.008 138 200.182V193.818C138 162.992 162.992 138 193.818 138H200.182C231.008 138 256 162.992 256 193.818V256Z" fill="#2E9EFF"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" fill="none">
+  <rect width="512" height="512" rx="108" fill="#000"/>
+  <rect x="108" y="128" width="296" height="60" rx="16" fill="#fff"/>
+  <rect x="312" y="136" width="80" height="44" rx="8" fill="#000"/>
+  <rect x="224" y="232" width="64" height="156" rx="8" fill="#fff"/>
 </svg>

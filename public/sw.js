@@ -1,13 +1,13 @@
-const CACHE_VERSION = 'taelos-shell-v1';
+const CACHE_VERSION = 'taelos-shell-v3';
 const OFFLINE_URL = '/offline';
 const PRECACHE_URLS = [
   OFFLINE_URL,
   '/manifest.webmanifest',
-  '/favicon.svg',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/icon-maskable-512.png',
-  '/apple-touch-icon.png',
+  '/favicon.svg?v=3',
+  '/icon-192.png?v=3',
+  '/icon-512.png?v=3',
+  '/icon-maskable-512.png?v=3',
+  '/apple-touch-icon.png?v=3',
 ];
 
 self.addEventListener('install', (event) => {
