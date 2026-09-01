@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="74" height="65" viewBox="0 0 74 65" fill="none">
+  <mask id="taelos-top" maskUnits="userSpaceOnUse" x="0" y="0" width="74" height="15">
+    <rect width="74" height="15" rx="4" fill="#fff"/>
+    <rect x="51" y="2" width="20" height="11" rx="2" fill="#000"/>
+  </mask>
+  <rect width="74" height="15" fill="#fff" mask="url(#taelos-top)"/>
+  <rect x="29" y="26" width="16" height="39" rx="2" fill="#fff"/>
+</svg>
