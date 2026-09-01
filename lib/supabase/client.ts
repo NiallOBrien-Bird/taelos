@@ -1,14 +1,19 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { getSupabaseEnv } from './env';
 
-let browserClient: ReturnType<typeof createBrowserClient> | undefined;
+let browserClient: SupabaseClient | undefined;
 
 export function createClient() {
   if (!browserClient) {
     const { url, publishableKey } = getSupabaseEnv();
-    browserClient = createBrowserClient(url, publishableKey);
+    browserClient = createBrowserClient(url, publishableKey, {
+      auth: {
+        experimental: { appendPkceFlowIdToRedirects: true },
+      },
+    });
   }
   return browserClient;
 }

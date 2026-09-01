@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRightIcon, CheckIcon, LockKeyholeIcon } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
+import { safeRedirectPath } from '@/lib/auth-redirect';
 
 type AuthMode = 'signup' | 'login';
 
@@ -20,14 +21,33 @@ export default function SignupPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const oauthError = params.get('error');
+    if (oauthError) {
+      queueMicrotask(() => {
+        setError(
+          oauthError === 'oauth_callback_failed'
+            ? 'We could not finish signing you in. Please try again.'
+            : 'The sign-in provider could not complete your request. Please try again.',
+        );
+      });
+    }
+
     if (!configured) return;
     void (async () => {
       const { data } = await createClient().auth.getUser();
-      if (data.user) router.replace('/');
+      if (data.user) {
+        router.replace(safeRedirectPath(params.get('next')));
+      }
     })();
   }, [configured, router]);
 
-  const callbackUrl = () => `${window.location.origin}/auth/callback?next=/`;
+  const callbackUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const callback = new URL('/auth/callback', window.location.origin);
+    callback.searchParams.set('next', safeRedirectPath(params.get('next')));
+    return callback.toString();
+  };
 
   const submit = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -61,7 +81,8 @@ export default function SignupPage() {
           'Check your email to confirm your account, then you can start using TÆLOS.',
         );
       } else {
-        router.replace('/');
+        const params = new URLSearchParams(window.location.search);
+        router.replace(safeRedirectPath(params.get('next')));
       }
     } catch {
       setError('Could not reach the sign-in service. Please try again.');

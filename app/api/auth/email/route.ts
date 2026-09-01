@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
-import { fetch as undiciFetch } from 'undici';
 import { getSupabaseEnv, isSupabaseConfigured } from '@/lib/supabase/env';
 
 type EmailAuthRequest = {
@@ -24,12 +23,6 @@ type RateLimitEntry = { count: number; resetAt: number };
 // for protection across serverless instances.
 const attemptsByIp = new Map<string, RateLimitEntry>();
 const attemptsByEmail = new Map<string, RateLimitEntry>();
-
-const directFetch: typeof fetch = (input, init) =>
-  undiciFetch(
-    input as Parameters<typeof undiciFetch>[0],
-    init as Parameters<typeof undiciFetch>[1],
-  ) as unknown as Promise<Response>;
 
 function response(body: Record<string, string | boolean>, status = 200) {
   return NextResponse.json(body, {
@@ -166,7 +159,6 @@ export async function POST(request: NextRequest) {
   let authResponse = response({ ok: true });
   const { url, publishableKey } = getSupabaseEnv();
   const supabase = createServerClient(url, publishableKey, {
-    global: { fetch: directFetch },
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet) {
