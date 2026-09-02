@@ -7173,6 +7173,33 @@ button {
   padding-left: 0;
 }
 
+.tm-app .tm-timeline-expand-button {
+  flex: 0 0 auto;
+  color: var(--todo-text-muted);
+}
+
+.tm-app .tm-timeline-subtasks {
+  display: contents;
+}
+
+.tm-app .tm-timeline-subtask {
+  min-height: 50px;
+  border-top: 1px solid #eff1f4;
+  background: rgb(248 250 255 / 58%);
+}
+
+.tm-app .tm-timeline-subtask .tm-title-cell {
+  padding-left: 27px;
+}
+
+.tm-app .tm-timeline-subtask.completed {
+  opacity: 0.58;
+}
+
+.tm-app .tm-timeline-subtask.completed h3 {
+  text-decoration: line-through;
+}
+
 .tm-app .tm-timeline-item h3 {
   min-width: 0;
   overflow: hidden;
@@ -7211,6 +7238,11 @@ button {
 
 .tm-app.tm-theme-dark .tm-timeline-item h3 {
   color: #d7dde6;
+}
+
+.tm-app.tm-theme-dark .tm-timeline-subtask {
+  border-top-color: #202837;
+  background: rgb(20 28 42 / 55%);
 }
 
 .tm-app.tm-theme-dark .tm-timeline-defer-button {
@@ -7256,6 +7288,10 @@ button {
   .tm-app .tm-timeline-item .tm-title-cell {
     grid-column: 1;
     grid-row: 1;
+  }
+
+  .tm-app .tm-timeline-subtask .tm-title-cell {
+    padding-left: 18px;
   }
 
   .tm-app .tm-timeline-item > .tm-due-cell {

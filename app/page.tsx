@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  Fragment,
   useEffect,
   useRef,
   useState,
@@ -4143,6 +4144,9 @@ function TimelinePage({
   const [deferTask, setDeferTask] = useState<Task | null>(null);
   const [chipTask, setChipTask] = useState<Task | null>(null);
   const [editTask, setEditTask] = useState<Task | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(
+    () => new Set(),
+  );
   const now = new Date();
   const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
   const todayKey = toDateString(today);
@@ -4262,6 +4266,36 @@ function TimelinePage({
       item.id === task.id
         ? { ...item, completed: true, completedAt: new Date().toISOString() }
         : item,
+    );
+    onChange(next);
+    void taskRepository.replace(next);
+  };
+  const toggleExpanded = (taskId: string) => {
+    setExpandedTasks((current) => {
+      const next = new Set(current);
+      if (next.has(taskId)) next.delete(taskId);
+      else next.add(taskId);
+      return next;
+    });
+  };
+  const toggleSubtaskComplete = (taskId: string, subtaskId: string) => {
+    const next = tasks.map((task) =>
+      task.id === taskId
+        ? deriveTaskCompletion({
+            ...task,
+            subtasks: task.subtasks.map((subtask) =>
+              subtask.id === subtaskId
+                ? {
+                    ...subtask,
+                    completed: !subtask.completed,
+                    completedAt: subtask.completed
+                      ? undefined
+                      : new Date().toISOString(),
+                  }
+                : subtask,
+            ),
+          })
+        : task,
     );
     onChange(next);
     void taskRepository.replace(next);
@@ -4386,67 +4420,166 @@ function TimelinePage({
                     task.subtasks.length === 0 && loggedWorkSessions
                       ? Math.min(9, 4 + loggedWorkSessions)
                       : 0;
+                  const isExpanded = expandedTasks.has(task.id);
                   return (
-                    <article
-                      className="tm-timeline-item"
-                      key={task.id}
-                      data-keyboard-task-row
-                    >
-                      <div className="tm-title-cell">
-                        <CompletionCircle
-                          checked={false}
-                          workLevel={workLevel}
-                          label={`Mark ${task.title} complete`}
-                          onChange={() => toggleComplete(task)}
+                    <Fragment key={task.id}>
+                      <article
+                        className="tm-timeline-item"
+                        data-keyboard-task-row
+                      >
+                        <div className="tm-title-cell">
+                          <CompletionCircle
+                            checked={false}
+                            workLevel={workLevel}
+                            label={`Mark ${task.title} complete`}
+                            onChange={() => toggleComplete(task)}
+                          />
+                          {task.subtasks.length > 0 && (
+                            <button
+                              type="button"
+                              className="tm-expand-button tm-timeline-expand-button"
+                              onClick={() => toggleExpanded(task.id)}
+                              aria-label={`${isExpanded ? 'Collapse' : 'Expand'} subtasks for ${task.title}`}
+                              aria-expanded={isExpanded}
+                              aria-controls={`timeline-subtasks-${task.id}`}
+                            >
+                              <ChevronIcon
+                                direction={isExpanded ? 'down' : 'right'}
+                              />
+                            </button>
+                          )}
+                          <h3>
+                            <button
+                              type="button"
+                              className="tm-keyboard-task-title"
+                              data-keyboard-task
+                              data-task-key={task.id}
+                              aria-keyshortcuts="E"
+                              onClick={() => setEditTask(task)}
+                              onKeyDown={(event) => {
+                                if (event.key === 'Enter')
+                                  event.preventDefault();
+                                if (event.key.toLowerCase() === 'e') {
+                                  event.preventDefault();
+                                  setEditTask(task);
+                                }
+                              }}
+                            >
+                              {task.title}
+                            </button>
+                          </h3>
+                        </div>
+                        <WorkDoneCell
+                          row={task}
+                          onChip={() => setChipTask(task)}
                         />
-                        <h3>
-                          <button
-                            type="button"
-                            className="tm-keyboard-task-title"
-                            data-keyboard-task
-                            data-task-key={task.id}
-                            aria-keyshortcuts="E"
-                            onClick={() => setEditTask(task)}
-                            onKeyDown={(event) => {
-                              if (event.key === 'Enter') event.preventDefault();
-                              if (event.key.toLowerCase() === 'e') {
-                                event.preventDefault();
-                                setEditTask(task);
-                              }
-                            }}
-                          >
-                            {task.title}
-                          </button>
-                        </h3>
-                      </div>
-                      <WorkDoneCell
-                        row={task}
-                        onChip={() => setChipTask(task)}
-                      />
-                      <div className={`tm-due-cell ${due.state}`}>
-                        {due.state === 'overdue' ? (
-                          <WarningIcon />
-                        ) : (
-                          <CalendarIcon />
-                        )}
-                        <time>{due.label}</time>
-                      </div>
-                      <div
-                        className="tm-category-cell"
-                        title={category.label}
-                        aria-label={category.label}
-                      >
-                        <CategoryIcon icon={category.icon} />
-                      </div>
-                      <IconButton
-                        label={`Defer ${task.title}`}
-                        size="small"
-                        className="tm-timeline-defer-button"
-                        onClick={() => setDeferTask(task)}
-                      >
-                        <DeferIcon />
-                      </IconButton>
-                    </article>
+                        <div className={`tm-due-cell ${due.state}`}>
+                          {due.state === 'overdue' ? (
+                            <WarningIcon />
+                          ) : (
+                            <CalendarIcon />
+                          )}
+                          <time>{due.label}</time>
+                        </div>
+                        <div
+                          className="tm-category-cell"
+                          title={category.label}
+                          aria-label={category.label}
+                        >
+                          <CategoryIcon icon={category.icon} />
+                        </div>
+                        <IconButton
+                          label={`Defer ${task.title}`}
+                          size="small"
+                          className="tm-timeline-defer-button"
+                          onClick={() => setDeferTask(task)}
+                        >
+                          <DeferIcon />
+                        </IconButton>
+                      </article>
+                      {isExpanded && (
+                        <div
+                          className="tm-timeline-subtasks"
+                          id={`timeline-subtasks-${task.id}`}
+                        >
+                          {task.subtasks.map((subtask) => {
+                            const subtaskRow: RowData = {
+                              id: subtask.id,
+                              title: subtask.title,
+                              completed: subtask.completed,
+                              dueDate: subtask.dueDate ?? task.dueDate,
+                              dueTime: subtask.dueTime ?? task.dueTime,
+                              dueLabel: subtask.dueLabel ?? task.dueLabel,
+                              category: subtask.category ?? task.category,
+                              progress: subtask.progress,
+                              workLog: subtask.workLog,
+                              subtasks: [],
+                            };
+                            const subtaskDue = dueDisplay(
+                              subtaskRow.dueDate,
+                              subtaskRow.dueTime,
+                              subtaskRow.dueLabel,
+                              dayEndTime,
+                            );
+                            const subtaskCategory = categoryFor(
+                              subtaskRow.category,
+                            );
+                            return (
+                              <article
+                                className={`tm-timeline-item tm-timeline-subtask${subtask.completed ? ' completed' : ''}`}
+                                key={subtask.id}
+                              >
+                                <div className="tm-title-cell">
+                                  <CompletionCircle
+                                    checked={subtask.completed}
+                                    label={`Mark ${subtask.title} ${subtask.completed ? 'incomplete' : 'complete'}`}
+                                    onChange={() =>
+                                      toggleSubtaskComplete(task.id, subtask.id)
+                                    }
+                                  />
+                                  <h3>
+                                    <button
+                                      type="button"
+                                      className="tm-keyboard-task-title"
+                                      onClick={() => setEditTask(task)}
+                                    >
+                                      {subtask.title}
+                                    </button>
+                                  </h3>
+                                </div>
+                                <div className="tm-work-cell">
+                                  <output
+                                    className={
+                                      subtask.completed ? 'complete' : ''
+                                    }
+                                  >
+                                    {formatWorkDone(subtaskRow)}
+                                  </output>
+                                </div>
+                                <div
+                                  className={`tm-due-cell ${subtaskDue.state}`}
+                                >
+                                  {subtaskDue.state === 'overdue' ? (
+                                    <WarningIcon />
+                                  ) : (
+                                    <CalendarIcon />
+                                  )}
+                                  <time>{subtaskDue.label}</time>
+                                </div>
+                                <div
+                                  className="tm-category-cell"
+                                  title={subtaskCategory.label}
+                                  aria-label={subtaskCategory.label}
+                                >
+                                  <CategoryIcon icon={subtaskCategory.icon} />
+                                </div>
+                                <span aria-hidden="true" />
+                              </article>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </Fragment>
                   );
                 })}
               </div>
@@ -4610,7 +4743,8 @@ export default function Home() {
       const row = (event.target as HTMLElement | null)?.closest<HTMLElement>(
         '[data-keyboard-task]',
       );
-      if (row?.dataset.taskKey) lastSelectedTask.current[view] = row.dataset.taskKey;
+      if (row?.dataset.taskKey)
+        lastSelectedTask.current[view] = row.dataset.taskKey;
     };
     window.addEventListener('focusin', rememberSelection);
     return () => window.removeEventListener('focusin', rememberSelection);
@@ -4620,7 +4754,9 @@ export default function Home() {
     const frame = window.requestAnimationFrame(() => {
       if (pendingQuickAddFocus.current && view === 'tasks') {
         pendingQuickAddFocus.current = false;
-        document.querySelector<HTMLInputElement>('[data-quick-add-title]')?.focus();
+        document
+          .querySelector<HTMLInputElement>('[data-quick-add-title]')
+          ?.focus();
         return;
       }
       if (!pendingViewFocus.current) return;
@@ -4629,7 +4765,9 @@ export default function Home() {
       const rows = Array.from(
         document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
       );
-      (rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0])?.focus();
+      (
+        rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0]
+      )?.focus();
     });
     return () => window.cancelAnimationFrame(frame);
   }, [view, loaded]);
@@ -4639,7 +4777,7 @@ export default function Home() {
       const target = event.target as HTMLElement | null;
       const isTyping = Boolean(
         target?.isContentEditable ||
-          target?.closest('input, textarea, select, [contenteditable="true"]'),
+        target?.closest('input, textarea, select, [contenteditable="true"]'),
       );
       if (isTyping || document.querySelector('[aria-modal="true"]')) return;
 
@@ -4658,9 +4796,13 @@ export default function Home() {
           pendingViewFocus.current = false;
           const remembered = lastSelectedTask.current[view];
           const rows = Array.from(
-            document.querySelectorAll<HTMLElement>('.tm-main [data-keyboard-task]'),
+            document.querySelectorAll<HTMLElement>(
+              '.tm-main [data-keyboard-task]',
+            ),
           );
-          (rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0])?.focus();
+          (
+            rows.find((row) => row.dataset.taskKey === remembered) ?? rows[0]
+          )?.focus();
         } else {
           setView(nextView);
         }
@@ -4672,7 +4814,9 @@ export default function Home() {
         if (view !== 'tasks') setView('tasks');
         else {
           pendingQuickAddFocus.current = false;
-          document.querySelector<HTMLInputElement>('[data-quick-add-title]')?.focus();
+          document
+            .querySelector<HTMLInputElement>('[data-quick-add-title]')
+            ?.focus();
         }
         return;
       }
@@ -4682,7 +4826,9 @@ export default function Home() {
         return;
       }
       if (event.key === 'Escape') {
-        const selectedTask = target?.closest<HTMLElement>('[data-keyboard-task]');
+        const selectedTask = target?.closest<HTMLElement>(
+          '[data-keyboard-task]',
+        );
         if (selectedTask) {
           event.preventDefault();
           selectedTask.blur();
@@ -4701,7 +4847,9 @@ export default function Home() {
         rows[Math.min(currentIndex + 1, rows.length - 1)]?.focus();
       } else if (event.key.toLowerCase() === 'k' || event.key === 'ArrowUp') {
         event.preventDefault();
-        rows[currentIndex < 0 ? rows.length - 1 : Math.max(currentIndex - 1, 0)]?.focus();
+        rows[
+          currentIndex < 0 ? rows.length - 1 : Math.max(currentIndex - 1, 0)
+        ]?.focus();
       } else if (event.key === ' ' && current) {
         const completion = current
           .closest<HTMLElement>('[data-keyboard-task-row]')
@@ -4743,34 +4891,100 @@ export default function Home() {
             <section>
               <h2>Navigate</h2>
               <dl>
-                <div><dt><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd></dt><dd>Tasks, Timeline, Shelf</dd></div>
-                <div><dt><kbd>J</kbd> <kbd>K</kbd></dt><dd>Next or previous task</dd></div>
-                <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Next or previous task</dd></div>
+                <div>
+                  <dt>
+                    <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd>
+                  </dt>
+                  <dd>Tasks, Timeline, Shelf</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>J</kbd> <kbd>K</kbd>
+                  </dt>
+                  <dd>Next or previous task</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>↑</kbd> <kbd>↓</kbd>
+                  </dt>
+                  <dd>Next or previous task</dd>
+                </div>
               </dl>
             </section>
             <section>
               <h2>Tasks</h2>
               <dl>
-                <div><dt><kbd>N</kbd></dt><dd>Add a task</dd></div>
-                <div><dt><kbd>Enter</kbd></dt><dd>Expand or collapse subtasks</dd></div>
-                <div><dt><kbd>E</kbd></dt><dd>Edit the selected task</dd></div>
-                <div><dt><kbd>Space</kbd></dt><dd>Complete the selected task</dd></div>
-                <div><dt><kbd>Esc</kbd></dt><dd>Leave row navigation</dd></div>
-                <div><dt><kbd>⌘/Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo the last change</dd></div>
+                <div>
+                  <dt>
+                    <kbd>N</kbd>
+                  </dt>
+                  <dd>Add a task</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Enter</kbd>
+                  </dt>
+                  <dd>Expand or collapse subtasks</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>E</kbd>
+                  </dt>
+                  <dd>Edit the selected task</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Space</kbd>
+                  </dt>
+                  <dd>Complete the selected task</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Esc</kbd>
+                  </dt>
+                  <dd>Leave row navigation</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>⌘/Ctrl</kbd> <kbd>Z</kbd>
+                  </dt>
+                  <dd>Undo the last change</dd>
+                </div>
               </dl>
             </section>
             <section>
               <h2>Create and edit</h2>
               <dl>
-                <div><dt><kbd>Enter</kbd></dt><dd>Finish and save</dd></div>
-                <div><dt><kbd>Tab</kbd></dt><dd>Add another detail</dd></div>
-                <div><dt><kbd>Shift</kbd> <kbd>Tab</kbd></dt><dd>Move to the previous detail</dd></div>
-                <div><dt><kbd>Esc</kbd></dt><dd>Close or cancel</dd></div>
+                <div>
+                  <dt>
+                    <kbd>Enter</kbd>
+                  </dt>
+                  <dd>Finish and save</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Tab</kbd>
+                  </dt>
+                  <dd>Add another detail</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Shift</kbd> <kbd>Tab</kbd>
+                  </dt>
+                  <dd>Move to the previous detail</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>Esc</kbd>
+                  </dt>
+                  <dd>Close or cancel</dd>
+                </div>
               </dl>
             </section>
           </div>
           <p className="tm-shortcuts-footnote">
-            Shortcuts pause while you are typing. Press <kbd>?</kbd> anytime in browse mode to reopen this guide.
+            Shortcuts pause while you are typing. Press <kbd>?</kbd> anytime in
+            browse mode to reopen this guide.
           </p>
         </DialogContent>
       </Dialog>
