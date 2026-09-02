@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type KeyboardEvent as ReactKeyboardEvent,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
@@ -1753,6 +1754,24 @@ function deferredBaseDate(row: RowData, dayEndTime: string) {
   );
 }
 
+function handleChevronDisclosureKeyDown(
+  event: ReactKeyboardEvent<HTMLButtonElement>,
+  expanded: boolean,
+  setExpanded: (expanded: boolean) => void,
+) {
+  const key = event.key.toLowerCase();
+  const wantsExpanded =
+    key === 'arrowright' || key === 'l'
+      ? true
+      : key === 'arrowleft' || key === 'h'
+        ? false
+        : undefined;
+  if (wantsExpanded === undefined) return;
+  event.preventDefault();
+  event.stopPropagation();
+  if (wantsExpanded !== expanded) setExpanded(wantsExpanded);
+}
+
 function deferByDays(
   row: RowData,
   days: number,
@@ -2062,7 +2081,15 @@ function DeferTaskDialog({
               type="button"
               className="tm-defer-exact-toggle"
               onClick={() => setExactDateOpen((open) => !open)}
+              onKeyDown={(event) =>
+                handleChevronDisclosureKeyDown(
+                  event,
+                  exactDateOpen,
+                  setExactDateOpen,
+                )
+              }
               aria-expanded={exactDateOpen}
+              aria-keyshortcuts="ArrowLeft H ArrowRight L"
             >
               <CalendarIcon />
               <span>Choose an exact date</span>
@@ -2180,8 +2207,14 @@ function TaskGridRow({
               type="button"
               className="tm-expand-button"
               onClick={onToggleExpand}
+              onKeyDown={(event) =>
+                handleChevronDisclosureKeyDown(event, Boolean(expanded), () =>
+                  onToggleExpand?.(),
+                )
+              }
               aria-label={`${expanded ? 'Collapse' : 'Expand'} ${row.title}`}
               aria-expanded={expanded}
+              aria-keyshortcuts="ArrowLeft H ArrowRight L"
             >
               <ChevronIcon direction={expanded ? 'down' : 'right'} />
             </button>
@@ -3176,6 +3209,15 @@ function TaskTable({
             type="button"
             className="tm-completed-toggle"
             onClick={() => setShowCompleted((value) => !value)}
+            onKeyDown={(event) =>
+              handleChevronDisclosureKeyDown(
+                event,
+                showCompleted,
+                setShowCompleted,
+              )
+            }
+            aria-expanded={showCompleted}
+            aria-keyshortcuts="ArrowLeft H ArrowRight L"
           >
             <ChevronIcon direction={showCompleted ? 'down' : 'right'} />
             <strong>Completed</strong>
@@ -4439,9 +4481,17 @@ function TimelinePage({
                               type="button"
                               className="tm-expand-button tm-timeline-expand-button"
                               onClick={() => toggleExpanded(task.id)}
+                              onKeyDown={(event) =>
+                                handleChevronDisclosureKeyDown(
+                                  event,
+                                  isExpanded,
+                                  () => toggleExpanded(task.id),
+                                )
+                              }
                               aria-label={`${isExpanded ? 'Collapse' : 'Expand'} subtasks for ${task.title}`}
                               aria-expanded={isExpanded}
                               aria-controls={`timeline-subtasks-${task.id}`}
+                              aria-keyshortcuts="ArrowLeft H ArrowRight L"
                             >
                               <ChevronIcon
                                 direction={isExpanded ? 'down' : 'right'}
@@ -4925,6 +4975,12 @@ export default function Home() {
                     <kbd>Enter</kbd>
                   </dt>
                   <dd>Expand or collapse subtasks</dd>
+                </div>
+                <div>
+                  <dt>
+                    <kbd>H</kbd> <kbd>←</kbd> / <kbd>L</kbd> <kbd>→</kbd>
+                  </dt>
+                  <dd>Close or open a focused chevron</dd>
                 </div>
                 <div>
                   <dt>
