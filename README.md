@@ -1,50 +1,109 @@
-# TÆLOS
+<div align="center">
+  <img src="public/favicon.svg" alt="TÆLOS app icon" width="96" height="96" />
 
-A personal task manager built with Next.js and Supabase.
+  <h1>TÆLOS</h1>
 
-Production: [www.taelos.xyz](https://www.taelos.xyz/)
+  <p><strong>A calm, private task manager for making progress visible—one next step at a time.</strong></p>
+</div>
 
-## Local setup
+## About TÆLOS
 
-1. Copy `.env.example` to `.env.local` and add your Supabase project URL and publishable key.
-2. Run `npm install`.
-3. Run `npm run dev`.
+TÆLOS is a personal task manager designed to make planning feel clear rather
+than demanding. It combines straightforward task capture with flexible
+deadlines, visible progress, and a focused timeline so that large commitments
+can be approached in smaller, useful steps.
 
-## Deploy to Vercel
+The application is access-controlled, stores each account's data separately,
+and is designed to work comfortably across desktop and mobile devices.
 
-1. Push this repository to GitHub and import it in Vercel.
-2. Add these environment variables in Vercel for Production, Preview, and Development:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-3. In Supabase Authentication URL Configuration, add your Vercel production URL and preview URL pattern to the allowed redirect URLs.
-4. Apply the SQL migration in `supabase/migrations` to your Supabase project if it has not already been applied.
+## Features
 
-## Google and GitHub sign-in
+- **Fast task capture** — create tasks quickly, then add structure only when it
+  is useful.
+- **Natural-language deadlines** — use phrases such as `tomorrow at 9am` or
+  choose an exact date and time.
+- **Subtasks and progress tracking** — break work into smaller steps or record
+  progress in minutes, pages, words, sessions, and other practical units.
+- **Categories** — organize and filter tasks with customizable labels and
+  icons.
+- **Timeline** — see dated work in context, with overdue and upcoming tasks
+  clearly separated.
+- **Shelf** — move inactive tasks out of the way without deleting them, then
+  restore them when they become relevant again.
+- **Work activity** — review recent momentum through an activity heatmap and
+  summary.
+- **A day that fits your schedule** — choose when your working day ends so
+  late-night tasks remain attached to the day they belong to.
+- **Keyboard-friendly workflow** — navigate, edit, complete, and undo without
+  leaving the keyboard.
+- **Responsive, installable experience** — use TÆLOS as a web app on desktop
+  or mobile, with light and dark themes.
+- **Private cloud sync** — task data is stored per user in Supabase and guarded
+  by row-level security.
 
-The app uses Supabase Auth's PKCE flow. Both providers must be enabled in the
-linked Supabase project before their buttons will work.
+## Technology
 
-The provider callback URL is:
+TÆLOS is built with:
 
-```text
-https://kesvvxhujcxdiooyijnu.supabase.co/auth/v1/callback
-```
+- [Next.js](https://nextjs.org/) and [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Supabase](https://supabase.com/) for authentication and data storage
+- [Tailwind CSS](https://tailwindcss.com/)
 
-1. In Google Auth Platform, create a **Web application** OAuth client. Add
-   `https://www.taelos.xyz` as an authorized JavaScript origin and the provider
-   callback URL above as an authorized redirect URI. In Data Access, enable the
-   `openid`, email, and profile scopes.
-2. In GitHub Developer Settings, create an **OAuth App** with
-   `https://www.taelos.xyz` as its homepage and the provider callback URL above
-   as its authorization callback URL.
-3. In Supabase Dashboard → Authentication → Providers, enable Google and
-   GitHub and save each provider's client ID and client secret.
-4. In Supabase Dashboard → Authentication → URL Configuration, keep
-   `https://www.taelos.xyz` as the Site URL and add
-   `https://www.taelos.xyz/auth/callback` plus any local/preview callback URLs
-   the app uses.
+## Local development
 
-Provider client secrets belong only in Google/GitHub and Supabase settings;
-never add them to `NEXT_PUBLIC_*` variables or commit them to this repository.
+### Requirements
 
-Vercel automatically uses `npm run build`; no `vercel.json` is required.
+- Node.js 22.13 or newer
+- npm
+- A Supabase project
+
+### Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Copy `.env.example` to `.env.local` and provide the public values from your
+   Supabase project:
+
+   ```dotenv
+   NEXT_PUBLIC_SUPABASE_URL=
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+   ```
+
+3. Apply the migration in `supabase/migrations` to the Supabase project.
+
+4. Configure any sign-in providers you intend to use in Supabase.
+
+5. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+The application will be available at [http://localhost:3000](http://localhost:3000).
+
+## Available scripts
+
+| Command          | Purpose                            |
+| ---------------- | ---------------------------------- |
+| `npm run dev`    | Start the local development server |
+| `npm run build`  | Create a production build          |
+| `npm run start`  | Run the production build locally   |
+| `npm run lint`   | Check the codebase with Oxlint     |
+| `npm run format` | Format the codebase with Oxfmt     |
+
+## Privacy and data
+
+TÆLOS requires an authenticated account. Task collections are stored in
+Supabase and protected with row-level security so each user can access only
+their own data. The service worker deliberately avoids caching private task
+content for offline use.
+
+## Project status
+
+TÆLOS is under active development as a private personal application. Features
+and interfaces may continue to evolve as the workflow is refined.
