@@ -1663,7 +1663,11 @@ function Navigation({
           onClick={() => onView('tasks')}
         >
           <BrandMark />
-          <span>TÆLOS</span>
+          <img
+            className="tm-brand-wordmark"
+            src="/taelos-wordmark.svg"
+            alt="TÆLOS"
+          />
         </button>
         <button
           className="tm-sidebar-toggle"

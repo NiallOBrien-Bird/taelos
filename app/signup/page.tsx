@@ -117,7 +117,11 @@ export default function SignupPage() {
           <span className="auth-brand-mark" aria-hidden="true">
             <img src="/taelos-mark.svg" alt="" />
           </span>
-          <strong>TÆLOS</strong>
+          <img
+            className="auth-brand-wordmark"
+            src="/taelos-wordmark.svg"
+            alt="TÆLOS"
+          />
         </Link>
         <div className="auth-story-copy">
           <p className="auth-kicker">A quieter way to make progress</p>
@@ -149,7 +153,11 @@ export default function SignupPage() {
             <span className="auth-brand-mark" aria-hidden="true">
               <img src="/taelos-mark.svg" alt="" />
             </span>
-            TÆLOS
+            <img
+              className="auth-brand-wordmark"
+              src="/taelos-wordmark.svg"
+              alt="TÆLOS"
+            />
           </div>
           <div className="auth-tabs" role="tablist" aria-label="Account access">
             <button
