@@ -7652,3 +7652,12 @@ button {
     font-size: 13px;
   }
 }
+
+/* One-tap push back: show where each option lands. */
+.tm-task-menu .tm-quick-defer-when {
+  margin-left: auto;
+  padding-left: 16px;
+  color: var(--todo-text-faint);
+  font-size: 0.85em;
+  white-space: nowrap;
+}

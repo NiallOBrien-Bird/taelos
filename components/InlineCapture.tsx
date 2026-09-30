@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  type ReactNode,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -27,9 +28,14 @@ import { relativeDue } from '@/lib/relative-due';
 
 type Line = { id: number; text: string; literal: boolean };
 
+type Area = { value: string; label: string; icon?: ReactNode };
+
 type Props = {
   onCreate: (value: QuickAddValue) => void;
+  /** The area (category) new tasks are tagged with — follows the filter. */
   category: string;
+  areas: Area[];
+  onAreaChange: (value: string) => void;
   dayEndTime?: string;
 };
 
@@ -41,7 +47,7 @@ function read(line: Line, now: Date, dayEndTime?: string) {
   return splitInlineDeadline(line.text, now, dayEndTime);
 }
 
-export function InlineCapture({ onCreate, category, dayEndTime }: Props) {
+export function InlineCapture({ onCreate, category, areas, onAreaChange, dayEndTime }: Props) {
   const [lines, setLines] = useState<Line[]>(() => [newLine()]);
   const [focused, setFocused] = useState(false);
   const [keyboardInset, setKeyboardInset] = useState(0);
@@ -206,6 +212,7 @@ export function InlineCapture({ onCreate, category, dayEndTime }: Props) {
   };
 
   const activeTaskHasText = !!lines[0].text.trim();
+  const activeArea = areas.find((area) => area.value === category);
 
   return (
     <div
@@ -232,7 +239,24 @@ export function InlineCapture({ onCreate, category, dayEndTime }: Props) {
           return (
             <div key={line.id} className={`ic-line${isTask ? ' ic-task' : ' ic-sub'}`}>
               {isTask ? (
-                <span className="ic-bullet" aria-hidden="true" />
+                <label className="ic-area" title="Area this task goes into">
+                  {activeArea?.icon && <span className="ic-area-icon">{activeArea.icon}</span>}
+                  <span className="ic-area-label">{activeArea?.label ?? category}</span>
+                  <select
+                    value={category}
+                    aria-label="Area for this task"
+                    onChange={(event) => {
+                      onAreaChange(event.target.value);
+                      focusLine(line.id);
+                    }}
+                  >
+                    {areas.map((area) => (
+                      <option key={area.value} value={area.value}>
+                        {area.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               ) : (
                 <span className="ic-branch" aria-hidden="true" />
               )}

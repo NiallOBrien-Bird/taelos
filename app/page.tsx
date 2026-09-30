@@ -1752,6 +1752,81 @@ function nextWeekendDate(row: RowData, dayEndTime: string) {
   return toDateString(addDays(thisSunday, 7));
 }
 
+
+/** One-tap "push it back" choices, always counted from today. */
+function quickDeferOptions(row: RowData, dayEndTime: string) {
+  const now = new Date();
+  const today = new Date(`${getDayKey(now, dayEndTime)}T12:00:00`);
+  const options: Array<{ key: string; title: string; deadline: DeferredDeadline }> = [];
+  if (now.getHours() < 19) {
+    options.push({
+      key: 'evening',
+      title: 'Later today',
+      deadline: { dueDate: toDateString(today), dueTime: '20:59', dueLabel: 'This evening' },
+    });
+  }
+  options.push({
+    key: 'tomorrow',
+    title: 'Tomorrow',
+    deadline: { dueDate: toDateString(addDays(today, 1)), dueTime: row.dueTime, dueLabel: 'Tomorrow' },
+  });
+  const day = today.getDay();
+  if (day >= 1 && day <= 4) {
+    options.push({
+      key: 'weekend',
+      title: 'This weekend',
+      deadline: { dueDate: toDateString(addDays(today, 6 - day)), dueTime: undefined, dueLabel: 'This weekend' },
+    });
+  }
+  options.push({
+    key: 'next-week',
+    title: 'Next week',
+    deadline: { dueDate: toDateString(addDays(today, ((8 - day) % 7) || 7)), dueTime: undefined, dueLabel: 'Next week' },
+  });
+  return options;
+}
+
+function QuickDeferItems({
+  row,
+  dayEndTime,
+  onDeferTo,
+  onPickDate,
+  onShelve,
+}: {
+  row: RowData;
+  dayEndTime: string;
+  onDeferTo: (deadline: DeferredDeadline) => void;
+  onPickDate: () => void;
+  onShelve?: () => void;
+}) {
+  return (
+    <>
+      {quickDeferOptions(row, dayEndTime).map((option) => (
+        <DropdownMenuItem key={option.key} onClick={() => onDeferTo(option.deadline)}>
+          <DeferIcon />
+          <span>{option.title}</span>
+          <small className="tm-quick-defer-when">
+            {relativeDue(option.deadline.dueDate, option.deadline.dueTime, new Date(), dayEndTime).label}
+          </small>
+        </DropdownMenuItem>
+      ))}
+      <DropdownMenuItem onClick={onPickDate}>
+        <CalendarIcon />
+        <span>Pick a date…</span>
+      </DropdownMenuItem>
+      {onShelve && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={onShelve}>
+            <ArchiveIcon />
+            <span>Shelve for later</span>
+          </DropdownMenuItem>
+        </>
+      )}
+    </>
+  );
+}
+
 function CompletionCircle({
   checked,
   workLevel = 0,
@@ -2103,6 +2178,7 @@ function TaskGridRow({
   onChip,
   onRecordWork,
   onDefer,
+  onDeferTo,
   onEdit,
   onDelete,
   onShelf,
@@ -2118,6 +2194,7 @@ function TaskGridRow({
   onChip: () => void;
   onRecordWork: (amount: number, unit: ProgressUnit) => void;
   onDefer: () => void;
+  onDeferTo: (deadline: DeferredDeadline) => void;
   onEdit: () => void;
   onDelete: () => void;
   onShelf: () => void;
@@ -2196,15 +2273,34 @@ function TaskGridRow({
             <CategoryIcon icon={category.icon} />
           </div>
         </div>
-        <IconButton
-          label={`Defer ${row.title}`}
-          size="small"
-          onClick={onDefer}
-          disabled={row.completed}
-          className="tm-defer-button"
-        >
-          <DeferIcon />
-        </IconButton>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            disabled={row.completed}
+            render={
+              <IconButton
+                label={`Push back ${row.title}`}
+                size="small"
+                disabled={row.completed}
+                className="tm-defer-button"
+              >
+                <DeferIcon />
+              </IconButton>
+            }
+          />
+          <DropdownMenuContent
+            className="tm-task-menu"
+            align="end"
+            sideOffset={7}
+            aria-label={`Push back ${row.title}`}
+          >
+            <QuickDeferItems
+              row={row}
+              dayEndTime={dayEndTime}
+              onDeferTo={onDeferTo}
+              onPickDate={onDefer}
+            />
+          </DropdownMenuContent>
+        </DropdownMenu>
         <div className="tm-compact-menu">
           <DropdownMenu>
             <DropdownMenuTrigger
@@ -2224,10 +2320,17 @@ function TaskGridRow({
               sideOffset={7}
               aria-label={`Actions for ${row.title}`}
             >
-              <DropdownMenuItem onClick={onDefer} disabled={row.completed}>
-                <DeferIcon />
-                <span>Defer</span>
-              </DropdownMenuItem>
+              {!row.completed && (
+                <>
+                  <QuickDeferItems
+                    row={row}
+                    dayEndTime={dayEndTime}
+                    onDeferTo={onDeferTo}
+                    onPickDate={onDefer}
+                  />
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem onClick={onEdit}>
                 <EditIcon />
                 <span>Edit task</span>
@@ -3021,6 +3124,9 @@ function TaskTable({
                         })),
                     })
                   }
+                  onDeferTo={(deadline) =>
+                    updateTask(task.id, (item) => ({ ...item, ...deadline }))
+                  }
                   onEdit={() =>
                     setEditState({
                       row: parentRow,
@@ -3112,6 +3218,12 @@ function TaskTable({
                                 ...deadline,
                               })),
                           })
+                        }
+                        onDeferTo={(deadline) =>
+                          updateChild(task.id, child.id, (item) => ({
+                            ...item,
+                            ...deadline,
+                          }))
                         }
                         onEdit={() =>
                           setEditState({
@@ -3501,6 +3613,13 @@ function TasksPage({
   onDayEndTimeChange: (time: string) => void;
 }) {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [lastArea, setLastArea] = useState('');
+  const captureArea =
+    category !== 'All' && categories[category]
+      ? category
+      : categories[lastArea]
+        ? lastArea
+        : (Object.keys(categories)[0] ?? 'Personal');
   const [categoryName, setCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [categoryContextMenu, setCategoryContextMenu] = useState<{
@@ -3687,11 +3806,18 @@ function TasksPage({
       </header>
       <InlineCapture
         onCreate={createTask}
-        category={
-          category !== 'All' && categories[category]
-            ? category
-            : (Object.keys(categories)[0] ?? 'Personal')
-        }
+        category={captureArea}
+        areas={Object.entries(categories).map(([value, meta]) => ({
+          value,
+          label: meta.label,
+          icon: <CategoryIcon icon={meta.icon} />,
+        }))}
+        onAreaChange={(value) => {
+          setLastArea(value);
+          // While looking through an area, the add bar and the filter move
+          // together so the new task lands where you're looking.
+          if (category !== 'All') onCategoryChange(value);
+        }}
         dayEndTime={dayEndTime}
       />
       <div className="tm-toolbar">
@@ -4229,6 +4355,20 @@ function TimelinePage({
     onChange(next);
     void taskRepository.replace(next);
   };
+  const deferTo = (target: Task, deadline: DeferredDeadline) => {
+    const next = tasks.map((task) =>
+      task.id === target.id ? { ...task, ...deadline } : task,
+    );
+    onChange(next);
+    void taskRepository.replace(next);
+  };
+  const shelve = (target: Task) => {
+    const next = tasks.map((task) =>
+      task.id === target.id ? { ...task, shelved: true } : task,
+    );
+    onChange(next);
+    void taskRepository.replace(next);
+  };
   const defer = (deadline: DeferredDeadline) => {
     if (!deferTask) return;
     const next = tasks.map((task) =>
@@ -4421,14 +4561,33 @@ function TimelinePage({
                         >
                           <CategoryIcon icon={category.icon} />
                         </div>
-                        <IconButton
-                          label={`Defer ${task.title}`}
-                          size="small"
-                          className="tm-timeline-defer-button"
-                          onClick={() => setDeferTask(task)}
-                        >
-                          <DeferIcon />
-                        </IconButton>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger
+                            render={
+                              <IconButton
+                                label={`Push back ${task.title}`}
+                                size="small"
+                                className="tm-timeline-defer-button"
+                              >
+                                <DeferIcon />
+                              </IconButton>
+                            }
+                          />
+                          <DropdownMenuContent
+                            className="tm-task-menu"
+                            align="end"
+                            sideOffset={7}
+                            aria-label={`Push back ${task.title}`}
+                          >
+                            <QuickDeferItems
+                              row={task}
+                              dayEndTime={dayEndTime}
+                              onDeferTo={(deadline) => deferTo(task, deadline)}
+                              onPickDate={() => setDeferTask(task)}
+                              onShelve={() => shelve(task)}
+                            />
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </article>
                       {isExpanded && (
                         <div
