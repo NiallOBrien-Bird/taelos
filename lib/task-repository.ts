@@ -5,6 +5,9 @@ export type ProgressUnit = string;
 
 export interface WorkLogEntry {
   at: string;
+  /** How much was done in this session (chip away), in `unit`. */
+  amount?: number;
+  unit?: ProgressUnit;
 }
 
 export interface Subtask {
@@ -43,6 +46,8 @@ export interface Task {
   workLog?: WorkLogEntry[];
   subtasks: Subtask[];
   createdAt: string;
+  /** How many times the task has been pushed back (shown as › marks). */
+  pushes?: number;
 }
 
 export interface TaskRepository {
@@ -64,14 +69,14 @@ const MAX_UNIT_LENGTH = 48;
 
 const taskKeys = new Set([
   'id', 'title', 'completed', 'dueDate', 'dueTime', 'dueLabel', 'category',
-  'project', 'shelved', 'progress', 'completedAt', 'workLog', 'subtasks', 'createdAt',
+  'project', 'shelved', 'progress', 'completedAt', 'workLog', 'subtasks', 'createdAt', 'pushes',
 ]);
 const subtaskKeys = new Set([
   'id', 'title', 'completed', 'dueDate', 'dueTime', 'dueLabel', 'category',
   'progress', 'completedAt', 'workLog',
 ]);
 const progressKeys = new Set(['current', 'target', 'unit']);
-const workLogKeys = new Set(['at']);
+const workLogKeys = new Set(['at', 'amount', 'unit']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -127,8 +132,7 @@ function isProgress(value: unknown) {
     (value.target === undefined ||
       (typeof value.target === 'number' &&
         Number.isFinite(value.target) &&
-        value.target > 0 &&
-        value.target >= value.current)) &&
+        value.target > 0)) &&
     isBoundedString(value.unit, MAX_UNIT_LENGTH)
   );
 }
@@ -140,7 +144,12 @@ function isWorkLog(value: unknown) {
       value.length <= MAX_WORK_LOG_ENTRIES &&
       value.every(
         (entry) =>
-          isRecord(entry) && hasOnlyKeys(entry, workLogKeys) && isIsoTimestamp(entry.at),
+          isRecord(entry) &&
+          hasOnlyKeys(entry, workLogKeys) &&
+          isIsoTimestamp(entry.at) &&
+          (entry.amount === undefined ||
+            (typeof entry.amount === 'number' && Number.isFinite(entry.amount) && entry.amount > 0)) &&
+          isOptionalBoundedString(entry.unit, MAX_UNIT_LENGTH),
       ))
   );
 }
@@ -175,6 +184,8 @@ export function isTaskArray(value: unknown): value is Task[] {
         isBoundedString(task.category, MAX_CATEGORY_LENGTH) &&
         isOptionalBoundedString(task.project, MAX_PROJECT_LENGTH) &&
         (task.shelved === undefined || typeof task.shelved === 'boolean') &&
+        (task.pushes === undefined ||
+          (Number.isInteger(task.pushes) && (task.pushes as number) >= 0 && (task.pushes as number) <= 10_000)) &&
         isIsoTimestamp(task.createdAt) &&
         Array.isArray(task.subtasks) &&
         task.subtasks.length <= MAX_SUBTASKS_PER_TASK &&
