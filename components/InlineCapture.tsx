@@ -297,7 +297,12 @@ export function InlineCapture({ onCreate, category, dayEndTime }: Props) {
           >
             <span aria-hidden="true">+</span> Subtask
           </button>
-          <span className="ic-hint" aria-live="polite">
+          <span className="ic-keys" aria-hidden="true">
+            <span><kbd>⏎</kbd>add</span>
+            <span><kbd>⇥</kbd>subtask</span>
+            <span><kbd>esc</kbd>{lines.some((line) => !line.literal && splitInlineDeadline(line.text, now, dayEndTime).deadline) ? 'keep as text' : 'clear'}</span>
+          </span>
+          <span className={`ic-hint${justAdded ? '' : ' ic-hint-idle'}`} aria-live="polite">
             {justAdded || (lines.length > 1 ? 'Empty line saves' : 'Return to add')}
           </span>
           <button

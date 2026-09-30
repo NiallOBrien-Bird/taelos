@@ -7652,3 +7652,418 @@ button {
     font-size: 13px;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Taelos Night — transparent TokyoNight glass
+   Palette from Niall's Neovim setup: navy #011628 base, lualine mode colours.
+   The accent follows the "mode": blue while browsing, aqua-green while typing
+   in the capture bar (Insert), magenta while a task is being deferred/edited.
+   Glass here means translucency over a slow colour field — real blur is kept
+   for the floating capture bar only, which keeps scrolling smooth on phones.
+   ════════════════════════════════════════════════════════════════════════════ */
+@property --mode {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #65d1ff;
+}
+@property --aura-a {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #65d1ff;
+}
+@property --aura-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #7a5cff;
+}
+
+.tm-app.tm-theme-dark {
+  --tn-bg: #011628;
+  --tn-bg-deep: #010e1b;
+  --tn-highlight: #143652;
+  --tn-visual: #275378;
+  --tn-fg: #cbe0f0;
+  --tn-fg-dark: #b4d0e9;
+  --tn-gutter: #627e97;
+  --tn-border: #547998;
+  --tn-blue: #65d1ff;
+  --tn-green: #3effdc;
+  --tn-violet: #ff61ef;
+  --tn-yellow: #ffda7b;
+  --tn-red: #ff4a4a;
+
+  --mode: var(--tn-blue);
+  --glass: rgb(1 22 40 / 58%);
+  --glass-strong: rgb(1 20 35 / 78%);
+  --hairline: rgb(84 121 152 / 26%);
+  --hairline-strong: rgb(84 121 152 / 42%);
+
+  --todo-canvas: var(--tn-bg-deep);
+  --todo-canvas-raised: var(--glass);
+  --todo-surface: var(--glass);
+  --todo-surface-hover: rgb(20 54 82 / 55%);
+  --todo-border: var(--hairline);
+  --todo-border-strong: var(--hairline-strong);
+  --todo-text: var(--tn-fg);
+  --todo-text-soft: var(--tn-fg-dark);
+  --todo-text-muted: #8fa9c0;
+  --todo-text-faint: var(--tn-gutter);
+  --todo-accent: var(--mode);
+  --todo-accent-bright: var(--mode);
+  --todo-accent-soft: color-mix(in srgb, var(--mode) 14%, transparent);
+  --todo-accent-border: color-mix(in srgb, var(--mode) 45%, transparent);
+  --todo-success: var(--tn-green);
+  --todo-warning: var(--tn-yellow);
+  --todo-danger: var(--tn-red);
+
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: 'cv11', 'ss01';
+  background: var(--tn-bg-deep);
+  transition: --mode 420ms ease, --aura-a 2s ease, --aura-b 2s ease;
+}
+
+/* Modes. :has() keeps this pure CSS — no state plumbing needed. */
+.tm-app.tm-theme-dark:has(.ic.ic-open) {
+  --mode: var(--tn-green);
+}
+body:has(.tm-defer-dialog, .tm-edit-dialog, .tm-work-dialog) .tm-app.tm-theme-dark {
+  --mode: var(--tn-violet);
+}
+
+/* Time-of-day aura colours. */
+.tm-app.tm-theme-dark[data-daypart='morning'] {
+  --aura-a: #ffb38a;
+  --aura-b: #65d1ff;
+}
+.tm-app.tm-theme-dark[data-daypart='day'] {
+  --aura-a: #65d1ff;
+  --aura-b: #3effdc;
+}
+.tm-app.tm-theme-dark[data-daypart='evening'] {
+  --aura-a: #ff61ef;
+  --aura-b: #6a5cff;
+}
+.tm-app.tm-theme-dark[data-daypart='night'] {
+  --aura-a: #3d59ff;
+  --aura-b: #ff61ef;
+}
+
+/* The colour field: one fixed layer, soft gradients, slow GPU-only drift. */
+.tm-app.tm-theme-dark::before {
+  content: '';
+  display: block;
+  position: fixed;
+  z-index: 0;
+  inset: -25%;
+  opacity: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 30% at 78% 18%, color-mix(in srgb, var(--aura-a) 30%, transparent), transparent 70%),
+    radial-gradient(34% 28% at 18% 62%, color-mix(in srgb, var(--aura-b) 22%, transparent), transparent 70%),
+    radial-gradient(30% 24% at 60% 92%, color-mix(in srgb, var(--mode) 12%, transparent), transparent 70%);
+  animation: tn-drift 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes tn-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-4%, 3%, 0) scale(1.06); }
+  100% { transform: translate3d(3%, -2%, 0) scale(1.02); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tm-app.tm-theme-dark::before { animation: none; }
+}
+
+.tm-app.tm-theme-dark .tm-main {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+}
+
+/* Surfaces: translucent navy, hairlines, no gloss or glow. */
+.tm-app.tm-theme-dark .tm-sidebar {
+  border-right: 1px solid var(--hairline);
+  background: rgb(1 14 27 / 62%);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+}
+.tm-app.tm-theme-dark .tm-primary-nav button.active {
+  background: color-mix(in srgb, var(--mode) 12%, transparent);
+  box-shadow: inset 2px 0 var(--mode);
+}
+.tm-app.tm-theme-dark .tm-task-table,
+.tm-app.tm-theme-dark .tm-timeline-item,
+.tm-app.tm-theme-dark .tm-shelf-item,
+.tm-app.tm-theme-dark .tm-timeline-filters,
+.tm-app.tm-theme-dark .tm-work-panel {
+  border-color: var(--hairline);
+  background: var(--glass);
+  box-shadow: none;
+}
+.tm-app.tm-theme-dark .tm-row-wrap.child {
+  background: rgb(1 14 27 / 35%);
+}
+.tm-app.tm-theme-dark .tm-row-wrap + .tm-row-wrap,
+.tm-app.tm-theme-dark .tm-task-row {
+  border-color: var(--hairline);
+}
+.tm-app.tm-theme-dark .tm-task-row:hover {
+  background: rgb(20 54 82 / 38%);
+}
+/* Vim-style current line: the focused task gets the cursorline + a mode bar. */
+.tm-app.tm-theme-dark .tm-row-wrap:focus-within > .tm-task-row {
+  background: rgb(20 54 82 / 62%);
+  box-shadow: inset 2px 0 var(--mode);
+}
+.tm-app.tm-theme-dark .tm-title-button,
+.tm-app.tm-theme-dark .tm-title-button:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  outline: none;
+}
+.tm-app.tm-theme-dark .tm-completion > span,
+.tm-app.tm-theme-dark .tm-completion.has-work > span {
+  box-shadow: none !important;
+  border-color: var(--tn-gutter);
+}
+.tm-app.tm-theme-dark .tm-completion > span svg {
+  color: var(--tn-bg);
+}
+.tm-app.tm-theme-dark .tm-completion input:focus-visible + span {
+  outline: 2px solid var(--mode);
+  outline-offset: 2px;
+}
+.tm-app.tm-theme-dark .tm-completion input:checked + span,
+.tm-app.tm-theme-dark .tm-row-wrap.completed .tm-completion > span {
+  border-color: var(--tn-green);
+  background: var(--tn-green);
+}
+.tm-app.tm-theme-dark .tm-row-wrap.completed .tm-title-button span {
+  color: var(--tn-gutter);
+  text-decoration-color: var(--tn-gutter);
+}
+.tm-app.tm-theme-dark .tm-completed-toggle,
+.tm-app.tm-theme-dark .sg-input {
+  border-color: var(--hairline);
+  background: var(--glass);
+}
+.tm-app.tm-theme-dark .tm-emoji-filter button.active,
+.tm-app.tm-theme-dark .tm-mobile-scopes button.active {
+  border-color: var(--todo-accent-border);
+  background: var(--todo-accent-soft);
+  color: var(--tn-fg);
+}
+
+/* Dialogs and menus float, so they get the real frosted glass. */
+.tm-app.tm-theme-dark .tm-edit-dialog,
+.tm-app.tm-theme-dark .tm-defer-dialog,
+.tm-app.tm-theme-dark .tm-work-dialog,
+.tm-task-menu {
+  border: 1px solid var(--hairline-strong) !important;
+  background: rgb(1 20 35 / 82%) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 45%) !important;
+}
+
+/* Typography: one elegant sans, numbers that line up. */
+.tm-app.tm-theme-dark .tm-page-title h1 {
+  color: var(--tn-fg);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.tm-app.tm-theme-dark .tm-due-cell,
+.tm-app.tm-theme-dark time,
+.tm-app.tm-theme-dark .tl-status {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+.tm-app.tm-theme-dark .tm-due-cell.today,
+.tm-app.tm-theme-dark .tm-timeline-item time.today {
+  color: var(--mode);
+}
+.tm-app.tm-theme-dark .tm-due-cell.overdue,
+.tm-app.tm-theme-dark .tm-shelf-item time.overdue,
+.tm-app.tm-theme-dark .tm-timeline-item time.overdue {
+  color: var(--tn-yellow);
+}
+
+/* ── Status line ─────────────────────────────────────────────────────────── */
+.tm-app .tl-status {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 14px;
+  padding: 0 0 12px;
+  color: var(--todo-text-muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+.tm-app .tl-status::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: var(--todo-border);
+}
+.tm-app .tl-progress {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  transform-origin: left center;
+  background: linear-gradient(90deg, var(--mode), color-mix(in srgb, var(--mode) 40%, var(--tn-violet, #ff61ef)));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--mode) 60%, transparent);
+  transition: transform 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.tm-app .tl-mode {
+  display: inline-grid;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--mode, var(--todo-accent));
+  color: var(--tn-bg, #011628);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.tm-app .tl-mode > span {
+  grid-area: 1 / 1;
+  transition: opacity 200ms ease;
+}
+.tm-app .tl-mode-insert,
+.tm-app:has(.ic.ic-open) .tl-mode-normal {
+  opacity: 0;
+}
+.tm-app:has(.ic.ic-open) .tl-mode-insert {
+  opacity: 1;
+}
+.tm-app .tl-date {
+  color: var(--todo-text);
+  font-weight: 500;
+}
+.tm-app .tl-stats {
+  display: flex;
+  gap: 10px;
+  min-width: 0;
+  overflow: hidden;
+}
+.tm-app .tl-stats b {
+  color: var(--todo-text-soft);
+  font-weight: 600;
+}
+.tm-app .tl-carried b,
+.tm-app .tl-carried {
+  color: var(--tn-yellow, var(--todo-warning));
+}
+
+/* ── Capture bar: the one real piece of glass ────────────────────────────── */
+.tm-app.tm-theme-dark .ic {
+  border-color: var(--hairline-strong);
+  background: rgb(1 20 35 / 62%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgb(203 224 240 / 7%),
+    0 18px 50px rgb(0 0 0 / 40%);
+}
+.tm-app.tm-theme-dark .ic.ic-open {
+  border-color: color-mix(in srgb, var(--mode) 55%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgb(203 224 240 / 8%),
+    0 0 0 3px color-mix(in srgb, var(--mode) 10%, transparent),
+    0 18px 50px rgb(0 0 0 / 45%);
+}
+.tm-app.tm-theme-dark .ic-line input {
+  caret-color: var(--mode);
+  color: var(--tn-fg);
+}
+.tm-app.tm-theme-dark .ic-bullet {
+  border-color: color-mix(in srgb, var(--mode) 70%, transparent);
+}
+.tm-app.tm-theme-dark .ic-chip {
+  border-color: color-mix(in srgb, var(--mode) 40%, transparent);
+  background: color-mix(in srgb, var(--mode) 13%, transparent);
+  color: var(--mode);
+  font-variant-numeric: tabular-nums;
+}
+.tm-app.tm-theme-dark .ic-actions {
+  border-top-color: var(--hairline);
+}
+.tm-app.tm-theme-dark .ic-action {
+  border-color: var(--hairline-strong);
+  color: var(--tn-fg-dark);
+}
+.tm-app.tm-theme-dark .ic-save {
+  border-color: transparent;
+  background: var(--mode);
+  color: var(--tn-bg);
+  font-weight: 600;
+}
+.tm-app .ic-keys {
+  display: none;
+  gap: 10px;
+  color: var(--todo-text-faint);
+  font-size: 11.5px;
+}
+.tm-app .ic-keys kbd {
+  display: inline-grid;
+  min-width: 20px;
+  height: 18px;
+  margin-right: 4px;
+  padding: 0 5px;
+  place-items: center;
+  border: 1px solid var(--todo-border-strong);
+  border-radius: 5px;
+  color: var(--todo-text-soft);
+  font: inherit;
+  font-size: 10.5px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tm-app .ic-keys {
+    display: inline-flex;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+  .tm-app .ic-hint {
+    flex: none;
+  }
+  .tm-app .ic-hint-idle {
+    display: none;
+  }
+}
+
+/* Motion: rows settle in, completion is felt. */
+@media (prefers-reduced-motion: no-preference) {
+  .tm-app.tm-theme-dark .tm-row-wrap {
+    animation: tn-row-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .tm-app.tm-theme-dark .tm-completion > span {
+    transition: background-color 220ms ease, border-color 220ms ease, transform 220ms cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .tm-app.tm-theme-dark .tm-completion:active > span {
+    transform: scale(0.82);
+  }
+}
+@keyframes tn-row-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 840px) {
+  .tm-app .tl-status {
+    gap: 10px;
+    font-size: 12.5px;
+  }
+  .tm-app .tl-date {
+    display: none;
+  }
+}
