@@ -7336,3 +7336,319 @@ button {
     padding: 12px 10px 10px 14px;
   }
 }
+
+/* Slipped tasks: carried over, not failed. A calm, muted tone instead of the
+   danger colour, so things that slipped read as "still open" rather than red. */
+.tm-app .tm-due-cell.overdue,
+.tm-app .tm-shelf-item time.overdue,
+.tm-app .tm-timeline-item time.overdue,
+.app-due-overdue {
+  color: #a0763a;
+}
+.tm-app.tm-theme-dark .tm-due-cell.overdue,
+.tm-app.tm-theme-dark .tm-shelf-item time.overdue,
+.tm-app.tm-theme-dark .tm-timeline-item time.overdue {
+  color: #d4b07a;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Inline capture (components/InlineCapture.tsx)
+   Desktop: sits at the top of the Tasks page. Phone: docked above the keyboard.
+   ──────────────────────────────────────────────────────────────────────────── */
+.tm-app .ic {
+  position: relative;
+  z-index: 40;
+  margin: 0 0 16px;
+  padding: 6px 8px;
+  border: 1px solid var(--todo-border);
+  border-radius: 12px;
+  background: var(--todo-surface);
+  transition: border-color 120ms ease;
+}
+.tm-app .ic.ic-open {
+  border-color: var(--todo-accent-border);
+}
+.tm-app .ic-lines {
+  display: grid;
+}
+.tm-app .ic-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+}
+.tm-app .ic-sub {
+  padding-left: 14px;
+  min-height: 36px;
+}
+.tm-app .ic-bullet {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin-left: 4px;
+  border: 1.5px dashed var(--todo-text-faint);
+  border-radius: 999px;
+}
+.tm-app .ic-branch {
+  flex: none;
+  width: 10px;
+  height: 14px;
+  margin: -10px 0 0 6px;
+  border-left: 1.5px solid var(--todo-border-strong);
+  border-bottom: 1.5px solid var(--todo-border-strong);
+  border-bottom-left-radius: 6px;
+}
+.tm-app .ic-line input {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--todo-text);
+  font: inherit;
+  font-size: 15px;
+}
+.tm-app .ic-sub input {
+  font-size: 14px;
+}
+.tm-app .ic-line input::placeholder {
+  color: var(--todo-text-faint);
+}
+.tm-app .ic-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 46%;
+  height: 26px;
+  padding: 0 8px 0 10px;
+  border: 1px solid var(--todo-accent-border);
+  border-radius: 999px;
+  background: var(--todo-accent-soft);
+  color: var(--todo-accent-bright);
+  font: inherit;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tm-app .ic-chip > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tm-app .ic-chip-x {
+  opacity: 0.7;
+  font-size: 14px;
+  line-height: 1;
+}
+.tm-app .ic-chip-off {
+  border-style: dashed;
+  border-color: var(--todo-border-strong);
+  background: transparent;
+  color: var(--todo-text-faint);
+}
+.tm-app .ic-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--todo-border);
+}
+.tm-app .ic-action {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--todo-border-strong);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--todo-text-soft);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.tm-app .ic-action > span {
+  font-size: 16px;
+  line-height: 1;
+}
+.tm-app .ic-action:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.tm-app .ic-save {
+  border-color: transparent;
+  background: var(--todo-accent);
+  color: #fff;
+}
+.tm-app .ic-hint {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--todo-text-faint);
+  font-size: 12px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tm-app .ic-toast {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  margin: 0;
+  padding: 6px 12px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--todo-text);
+  color: var(--todo-canvas);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   Phone pass: docked capture + compact, readable rows (Pynax-like density).
+   Rows were 70px tall with 11px titles and 6px dates; this makes them ~48px
+   with 15px titles and a single line of meta on the right.
+   ──────────────────────────────────────────────────────────────────────────── */
+@media (max-width: 840px) {
+  .tm-app .tm-mobile-add-task {
+    display: none !important;
+  }
+
+  .tm-app .tm-tasks-page {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom));
+  }
+
+  .tm-app .ic {
+    position: fixed;
+    right: 8px;
+    bottom: calc(var(--ic-keyboard, 0px) + 8px + env(safe-area-inset-bottom));
+    left: 8px;
+    margin: 0;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgb(0 0 0 / 28%);
+  }
+
+  .tm-app .ic-line input {
+    /* 16px stops iOS zooming into the field. */
+    font-size: 16px;
+  }
+
+  .tm-app .ic-sub input {
+    font-size: 16px;
+  }
+
+  .tm-app .ic-action {
+    height: 38px;
+  }
+
+  .tm-app .tm-task-table {
+    border-radius: 12px;
+  }
+
+  .tm-app.tm-app .tm-task-row,
+  .tm-app.tm-app .tm-row-wrap.child .tm-task-row {
+    min-height: 48px;
+    padding: 6px 4px 6px 10px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 32px;
+    grid-template-rows: auto;
+    align-items: center;
+    column-gap: 6px;
+    row-gap: 0;
+  }
+
+  .tm-app.tm-app .tm-title-cell {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 10px;
+    padding-left: calc(var(--depth) * 20px);
+  }
+
+  .tm-app.tm-app .tm-completion,
+  .tm-app.tm-app .tm-completion > span {
+    width: 20px;
+    height: 20px;
+  }
+
+  .tm-app.tm-app .tm-expand-button {
+    width: 18px;
+    margin-left: -4px;
+  }
+
+  .tm-app.tm-app .tm-title-button {
+    min-height: 36px;
+  }
+
+  .tm-app.tm-app .tm-title-button span {
+    font-size: 15px;
+    line-height: 1.35;
+    font-weight: 400;
+  }
+
+  .tm-app.tm-app .tm-row-wrap.child .tm-title-button span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--todo-text-soft);
+  }
+
+  .tm-app.tm-app .tm-task-meta {
+    grid-column: 2;
+    grid-row: 1;
+    padding-left: 0;
+    justify-content: flex-end;
+  }
+
+  .tm-app.tm-app .tm-task-meta .tm-due-cell {
+    min-height: 0;
+    padding: 0;
+    gap: 4px;
+    color: var(--todo-text-muted);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .tm-app.tm-app .tm-task-meta .tm-due-cell.today {
+    color: var(--todo-accent-bright);
+  }
+
+  .tm-app.tm-app .tm-task-meta .tm-due-cell.none {
+    display: none;
+  }
+
+  .tm-app.tm-app .tm-task-meta .tm-due-cell svg {
+    display: none;
+  }
+
+  .tm-app.tm-app .tm-compact-menu {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  .tm-app.tm-app .tm-more-button {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tm-app.tm-app .tm-timeline-item {
+    min-height: 48px;
+    padding: 6px 4px 6px 10px;
+  }
+
+  .tm-app.tm-app .tm-timeline-item > .tm-due-cell {
+    font-size: 12px;
+  }
+
+  .tm-app .tm-undo-toast {
+    bottom: calc(96px + env(safe-area-inset-bottom));
+  }
+
+  .tm-app .tm-mobile-scopes button {
+    height: 32px;
+    font-size: 13px;
+  }
+}

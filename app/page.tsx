@@ -99,7 +99,6 @@ import {
   ListIcon,
   MoreIcon,
   PlusIcon,
-  QuickAddBar,
   TimelineIcon,
   TodoStyleGuide,
   TrashIcon,
@@ -119,9 +118,10 @@ import {
   formatDeadlineResolution,
   parseHumanDeadline,
 } from '@/lib/human-deadline';
+import { relativeDue } from '@/lib/relative-due';
+import { InlineCapture } from '@/components/InlineCapture';
 import {
   DEFAULT_DAY_END_TIME,
-  dueInstant,
   formatClockTime,
   getDayKey,
   normalizeDayEndTime,
@@ -1445,70 +1445,20 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function displayDueTime(dueTime?: string) {
-  if (!dueTime) return '';
-  const [hour, minute] = dueTime.split(':').map(Number);
-  return new Intl.DateTimeFormat('en', {
-    hour: 'numeric',
-    minute: minute ? '2-digit' : undefined,
-  }).format(new Date(2000, 0, 1, hour, minute));
-}
-
-function normalizeDueLabel(label: string) {
-  return label.charAt(0).toUpperCase() + label.slice(1);
-}
-
 function dueDisplay(
   dueDate?: string,
   dueTime?: string,
-  dueLabel?: string,
+  _dueLabel?: string,
   dayEndTime = DEFAULT_DAY_END_TIME,
 ) {
+  // Labels are always rebuilt from the stored date relative to now. The phrase
+  // the user typed is kept only for editing, because it goes stale overnight.
   if (!dueDate) return { label: 'No date', state: 'none' } as const;
-  const now = new Date();
-  const today = getDayKey(now, dayEndTime);
-  const tomorrow = toDateString(addDays(new Date(`${today}T12:00:00`), 1));
-  const time = displayDueTime(dueTime);
+  const due = relativeDue(dueDate, dueTime, new Date(), dayEndTime);
   const tooltip = `Due ${formatDeadlineResolution({ date: dueDate, time: dueTime }, { long: true })}`;
-  if (dueDate < today)
-    return {
-      label: time ? `Overdue · ${time}` : 'Overdue',
-      state: 'overdue',
-      tooltip,
-    } as const;
-  if (dueDate === today && dueTime) {
-    if (dueInstant(dueDate, dueTime, dayEndTime) < now) {
-      return { label: `Overdue · ${time}`, state: 'overdue', tooltip } as const;
-    }
-  }
-  if (dueLabel && dueLabel !== 'Exact date')
-    return {
-      label: normalizeDueLabel(dueLabel),
-      state: dueDate === today ? 'today' : 'upcoming',
-      tooltip,
-    } as const;
-  if (dueDate === today)
-    return {
-      label: time ? `Today · ${time}` : 'Today',
-      state: 'today',
-      tooltip,
-    } as const;
-  if (dueDate === tomorrow)
-    return {
-      label: time ? `Tomorrow · ${time}` : 'Tomorrow',
-      state: 'upcoming',
-      tooltip,
-    } as const;
-  const date = new Date(`${dueDate}T12:00:00`);
-  return {
-    label: new Intl.DateTimeFormat('en', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    }).format(date),
-    state: 'upcoming',
-    tooltip,
-  } as const;
+  const state =
+    due.state === 'slipped' ? 'overdue' : due.state === 'today' ? 'today' : 'upcoming';
+  return { label: due.label, state, tooltip } as const;
 }
 
 function DayBoundarySettings({
@@ -1854,8 +1804,7 @@ function WorkDoneCell({ row, onChip }: { row: RowData; onChip: () => void }) {
 function DueCell({ due }: { due: ReturnType<typeof dueDisplay> }) {
   const content = (
     <>
-      {due.state === 'overdue' && <WarningIcon />}
-      {due.state !== 'none' && due.state !== 'overdue' && <CalendarIcon />}
+      {due.state !== 'none' && <CalendarIcon />}
       <span>{due.label}</span>
     </>
   );
@@ -3552,9 +3501,6 @@ function TasksPage({
   onDayEndTimeChange: (time: string) => void;
 }) {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
-  const [mobileAddOpen, setMobileAddOpen] = useState(false);
-  const [mobileKeyboardInset, setMobileKeyboardInset] = useState(0);
-  const mobileTaskInputRef = useRef<HTMLInputElement>(null);
   const [categoryName, setCategoryName] = useState('');
   const [selectedIcon, setSelectedIcon] = useState<string | null>(null);
   const [categoryContextMenu, setCategoryContextMenu] = useState<{
@@ -3562,30 +3508,6 @@ function TasksPage({
     x: number;
     y: number;
   } | null>(null);
-  useEffect(() => {
-    if (!mobileAddOpen || !window.visualViewport) return;
-    const viewport = window.visualViewport;
-    let frame = 0;
-    const updateKeyboardInset = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => {
-        setMobileKeyboardInset(
-          Math.max(
-            0,
-            window.innerHeight - viewport.height - viewport.offsetTop,
-          ),
-        );
-      });
-    };
-    updateKeyboardInset();
-    viewport.addEventListener('resize', updateKeyboardInset);
-    viewport.addEventListener('scroll', updateKeyboardInset);
-    return () => {
-      cancelAnimationFrame(frame);
-      viewport.removeEventListener('resize', updateKeyboardInset);
-      viewport.removeEventListener('scroll', updateKeyboardInset);
-    };
-  }, [mobileAddOpen]);
   useEffect(() => {
     if (!categoryDialogOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -3763,50 +3685,15 @@ function TasksPage({
           />
         </div>
       </header>
-      <QuickAddBar
+      <InlineCapture
         onCreate={createTask}
-        categories={Object.keys(categories)}
+        category={
+          category !== 'All' && categories[category]
+            ? category
+            : (Object.keys(categories)[0] ?? 'Personal')
+        }
         dayEndTime={dayEndTime}
       />
-      <Dialog
-        open={mobileAddOpen}
-        onOpenChange={(open) => {
-          setMobileAddOpen(open);
-          if (open) {
-            requestAnimationFrame(() =>
-              requestAnimationFrame(() => mobileTaskInputRef.current?.focus()),
-            );
-          }
-        }}
-      >
-        <DialogTrigger className="tm-mobile-add-task" aria-label="Add a task">
-          <span aria-hidden="true">+</span>
-        </DialogTrigger>
-        <DialogContent
-          className="tm-mobile-add-dialog"
-          style={
-            {
-              '--mobile-keyboard-inset': `${mobileKeyboardInset}px`,
-            } as CSSProperties
-          }
-        >
-          <DialogHeader className="tm-mobile-add-heading">
-            <DialogTitle>Add a task</DialogTitle>
-            <DialogDescription>
-              Capture it now, then add timing, category, or subtasks if needed.
-            </DialogDescription>
-          </DialogHeader>
-          <QuickAddBar
-            inputRef={mobileTaskInputRef}
-            onCreate={async (value) => {
-              createTask(value);
-              setMobileAddOpen(false);
-            }}
-            categories={Object.keys(categories)}
-            dayEndTime={dayEndTime}
-          />
-        </DialogContent>
-      </Dialog>
       <div className="tm-toolbar">
         <div className="tm-emoji-filter" aria-label="Filter tasks by category">
           <span className="tm-category-current" aria-live="polite">
@@ -4205,8 +4092,8 @@ function TimelinePage({
   const groups: TimelineGroup[] = [
     {
       id: 'earlier',
-      label: 'Earlier',
-      description: 'Past due and still open',
+      label: 'Still open',
+      description: 'Carried over — do it, or push it along',
       tasks: [],
     },
     {
@@ -4524,11 +4411,7 @@ function TimelinePage({
                           onChip={() => setChipTask(task)}
                         />
                         <div className={`tm-due-cell ${due.state}`}>
-                          {due.state === 'overdue' ? (
-                            <WarningIcon />
-                          ) : (
-                            <CalendarIcon />
-                          )}
+                          <CalendarIcon />
                           <time>{due.label}</time>
                         </div>
                         <div
@@ -4609,11 +4492,7 @@ function TimelinePage({
                                 <div
                                   className={`tm-due-cell ${subtaskDue.state}`}
                                 >
-                                  {subtaskDue.state === 'overdue' ? (
-                                    <WarningIcon />
-                                  ) : (
-                                    <CalendarIcon />
-                                  )}
+                                  <CalendarIcon />
                                   <time>{subtaskDue.label}</time>
                                 </div>
                                 <div
@@ -5146,14 +5025,6 @@ function DeferIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
       <path d="M4 10h11M8 6l-4 4 4 4" />
-    </svg>
-  );
-}
-function WarningIcon() {
-  return (
-    <svg viewBox="0 0 20 20" aria-hidden="true">
-      <path d="M10 3 2.5 17h15Z" />
-      <path d="M10 7v5M10 14.5v.2" />
     </svg>
   );
 }

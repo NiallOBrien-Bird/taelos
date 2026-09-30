@@ -72,7 +72,10 @@ export function parseHumanDeadline(
   now = new Date(),
   dayEndTime?: string,
 ): HumanDeadline | undefined {
-  const original = rawValue.trim();
+  const original = rawValue
+    .trim()
+    .replace(/\b(?:tmrw|tmr|tmw|tmoz|tomoz|2moro)\b/gi, 'tomorrow')
+    .replace(/\btonite\b/gi, 'tonight');
   if (!original || /^(no deadline|none|someday)$/i.test(original)) return undefined;
 
   const dayEnd = normalizeDayEndTime(dayEndTime);
