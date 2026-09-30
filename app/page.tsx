@@ -120,7 +120,6 @@ import {
 } from '@/lib/human-deadline';
 import { relativeDue } from '@/lib/relative-due';
 import { InlineCapture } from '@/components/InlineCapture';
-import { StatusLine } from '@/components/StatusLine';
 import {
   DEFAULT_DAY_END_TIME,
   formatClockTime,
@@ -3686,7 +3685,6 @@ function TasksPage({
           />
         </div>
       </header>
-      <StatusLine tasks={tasks} dayEndTime={dayEndTime} />
       <InlineCapture
         onCreate={createTask}
         category={
@@ -4572,15 +4570,6 @@ function TimelinePage({
   );
 }
 
-/** Drives the background aura: morning, day, evening or night. */
-function currentDaypart() {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 11) return 'morning';
-  if (hour >= 11 && hour < 17) return 'day';
-  if (hour >= 17 && hour < 22) return 'evening';
-  return 'night';
-}
-
 export default function Home() {
   const [view, setView] = useState<View>('tasks');
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
@@ -4591,12 +4580,6 @@ export default function Home() {
   const pendingViewFocus = useRef(false);
   const pendingQuickAddFocus = useRef(false);
   const [undoCount, setUndoCount] = useState(0);
-  const [daypart, setDaypart] = useState('day');
-  useEffect(() => {
-    setDaypart(currentDaypart());
-    const timer = window.setInterval(() => setDaypart(currentDaypart()), 5 * 60 * 1000);
-    return () => window.clearInterval(timer);
-  }, []);
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [theme, setTheme] = useState<Theme>('dark');
@@ -4824,10 +4807,7 @@ export default function Home() {
       </div>
     );
   return (
-    <main
-      className={`tm-app tm-theme-${theme} todo-style-guide`}
-      data-daypart={daypart}
-    >
+    <main className={`tm-app tm-theme-${theme} todo-style-guide`}>
       <Dialog open={shortcutsOpen} onOpenChange={setShortcutsOpen}>
         <DialogContent className="tm-shortcuts-dialog">
           <DialogHeader>
