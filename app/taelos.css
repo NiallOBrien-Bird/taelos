@@ -392,7 +392,42 @@ h1.views { display: flex; align-items: baseline; gap: 16px; margin: 2px 0 0 -4px
   .sugg .m { flex-basis: 100%; }
   .status { left: 16px; transform: none; bottom: calc(30px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 96px); }
 }
-@media (prefers-reduced-motion: reduce) { .item.appear .row, .item.leaving, .sheet, .open-body { animation: none; } }
+/* ── Motion ─────────────────────────────────────────────────────────────
+   Rows glide to new places (FLIP in render), sheets and toasts ease in and out,
+   presses give a little. Everything is transform/opacity so it stays cheap on phones. */
+@property --p { syntax: '<number>'; inherits: false; initial-value: 0; }
+.check { transition: border-color 0.15s ease, transform 0.15s ease, --p 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.tabs-area { position: relative; }
+.tab-ink { position: absolute; left: 0; bottom: -1px; height: 2px; border-radius: 2px; pointer-events: none; }
+.tabs-area.inked button.on::after { visibility: hidden; }
+.act, .quiet button, .views button, .tabs-area button, .add-foot button, .fab, .more-done, .sugg button, .add-area { transition: color 0.15s ease, background-color 0.15s ease, transform 0.14s ease; }
+.act:active, .quiet button:active, .tabs-area button:active, .add-foot button:active, .more-done:active, .add-area:active { transform: scale(0.93); }
+.fab:active { transform: scale(0.92); }
+.views button:active { transform: scale(0.97); }
+.row { transition: background-color 0.25s ease; }
+.main:active .title { opacity: 0.75; }
+.title { transition: opacity 0.12s ease; }
+.step .check, .step .st { transition: color 0.25s ease, background-color 0.2s ease, border-color 0.2s ease; }
+.step.pop.done .check { animation: spring 0.38s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.step.fresh, .add-step { animation: step-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@keyframes step-in { from { opacity: 0; transform: translateY(-4px); } }
+.unfold > * { animation: pop-in 0.22s cubic-bezier(0.34, 1.4, 0.64, 1) backwards; }
+.unfold > :nth-child(2) { animation-delay: 0.03s; } .unfold > :nth-child(3) { animation-delay: 0.06s; } .unfold > :nth-child(4) { animation-delay: 0.09s; }
+@keyframes pop-in { from { opacity: 0; transform: scale(0.6); } }
+.veil:not([hidden]) { animation: fade 0.2s ease; }
+.veil.closing { animation: fade-out 0.18s ease forwards; }
+.veil.closing, .sheet.closing { pointer-events: none; }
+.sheet.closing { animation: sink 0.18s cubic-bezier(0.4, 0, 1, 1) forwards; }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes sink { to { opacity: 0; translate: 0 14px; } }
+.status { translate: 0 10px; transition: opacity 0.2s ease, translate 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.status.show { translate: 0 0; }
+.more-acts.show > * { animation: pop-in 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) backwards; }
+.ghost-row { position: fixed; z-index: 4; margin: 0; pointer-events: none; background: var(--bg); overflow: hidden; border-top: 0 !important; }
+@media (prefers-reduced-motion: reduce) {
+  .item.appear .row, .item.leaving, .sheet, .open-body, .unfold > *, .step.fresh, .add-step, .veil, .sheet.closing, .veil.closing, .add-hint { animation: none !important; }
+  .status, .check { transition: none; }
+}
 /* App additions */
 html:has(.taelos-app), body:has(.taelos-app) { background: var(--app-bg, #0c0e14); }
 body:has(.taelos-app[data-theme="light"]) { --app-bg: #f6f7f9; }
@@ -411,4 +446,5 @@ body:has(.taelos-app[data-theme="light"]) { --app-bg: #f6f7f9; }
 @media (max-width: 820px) { .taelos-app .me { display: grid; } }
 .taelos-app .saving { position: fixed; z-index: 55; right: 12px; top: calc(10px + env(safe-area-inset-top, 0px)); padding: 4px 10px; border-radius: 999px; background: var(--raised); color: var(--rose); font-size: 12px; }
 .taelos-app .saving[hidden] { display: none; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.32s; }
 .taelos-boot { min-height: 100dvh; display: grid; place-items: center; background: #0c0e14; color: #8391a6; font: 14px var(--font-inter), system-ui, sans-serif; }
