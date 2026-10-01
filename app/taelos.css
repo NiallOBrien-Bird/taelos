@@ -107,20 +107,26 @@ h1.views { display: flex; align-items: baseline; gap: 16px; margin: 2px 0 0 -4px
 /* ── Add line ──────────────────────────────────────────────────────────── */
 .add { position: relative; margin: 0 0 8px; padding: 2px 0 6px; border-bottom: 1px solid var(--line); transition: border-color 0.15s ease; }
 .add.open { border-bottom-color: var(--line-strong); }
-.add-line { display: flex; align-items: center; gap: 10px; min-height: 44px; }
-.add-plus { width: 18px; height: 18px; color: var(--faint); display: grid; place-items: center; }
+.add-line { display: flex; align-items: flex-start; gap: 10px; min-height: 44px; padding: 6px 0; }
+.add-plus { width: 18px; height: 18px; margin-top: 7px; color: var(--faint); display: grid; place-items: center; }
 .add.open .add-plus { color: var(--accent); }
-.add-field { position: relative; flex: 1; min-width: 0; height: 32px; }
-.add-field input, .add-ghost { position: absolute; inset: 0; width: 100%; margin: 0; padding: 0; border: 0; background: none; font: 400 16px/32px var(--sans); letter-spacing: -0.005em; white-space: pre; overflow: hidden; }
-.add-field input { outline: none; color: transparent; caret-color: var(--accent); }
-.add-field input::placeholder { color: var(--faint); }
+/* The title wraps as it grows: the coloured ghost sets the height, the textarea sits on top of it. */
+.add-field { position: relative; flex: 1; min-width: 0; }
+.add-field textarea, .add-ghost { display: block; width: 100%; margin: 0; padding: 0; border: 0; background: none; font: 400 16px/26px var(--sans); letter-spacing: -0.005em; white-space: pre-wrap; overflow-wrap: anywhere; overflow: hidden; }
+.add-ghost { min-height: 32px; padding: 3px 0; }
+.add-field textarea { position: absolute; inset: 0; height: 100%; padding: 3px 0; resize: none; outline: none; color: transparent; caret-color: var(--accent); }
+.add-field textarea::placeholder { color: var(--faint); }
 .add-ghost { color: var(--strong); pointer-events: none; }
 .add-ghost .when { color: var(--accent); }
 .add-ghost .ghost { color: var(--faint); }
-.add-area { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 6px; margin-right: -6px; border-radius: 6px; color: var(--muted); font-size: 12px; }
+.add-area { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 28px; margin-top: 2px; padding: 0 6px; margin-right: -6px; border-radius: 6px; color: var(--muted); font-size: 12px; }
 .add-area .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ac); }
 .add-area:hover { background: var(--wash); color: var(--text); }
-.add-hint { flex: none; color: var(--faint); font-size: 12px; white-space: nowrap; }
+/* The time sits on its own line under the title, so the title keeps the full width. */
+.add-hint { display: flex; align-items: center; gap: 6px; margin: -8px 0 0; padding: 0 0 6px 28px; color: var(--faint); font-size: 12.5px; white-space: nowrap; overflow: hidden; animation: hint-in 0.16s ease-out; }
+.add-hint:empty { display: none; }
+.add-hint::before { content: ''; flex: none; width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.7; }
+@keyframes hint-in { from { opacity: 0; transform: translateY(-3px); } }
 .add-hint.when { color: var(--accent); }
 .add-hint.guess { color: var(--muted); }
 .add-hint button { color: inherit; text-decoration: underline dotted; text-underline-offset: 3px; }
