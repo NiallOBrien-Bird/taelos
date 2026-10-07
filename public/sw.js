@@ -1,5 +1,8 @@
-const CACHE_VERSION = 'taelos-shell-v3';
+const CACHE_VERSION = 'taelos-shell-v4';
 const OFFLINE_URL = '/offline';
+// The app page itself. It holds no personal data (tasks load in the browser), so it is
+// served straight from cache on launch and refreshed in the background.
+const APP_SHELL = '/';
 const PRECACHE_URLS = [
   OFFLINE_URL,
   '/manifest.webmanifest',
@@ -46,6 +49,27 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
 
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
+
+  if (request.mode === 'navigate' && url.pathname === APP_SHELL) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_VERSION);
+        const cached = await cache.match(APP_SHELL);
+        const network = fetch(request).then(async (response) => {
+          // Only keep a real copy of the app page; a redirect means signed out.
+          if (response.ok && !response.redirected) await cache.put(APP_SHELL, response.clone());
+          else if (response.redirected) await cache.delete(APP_SHELL);
+          return response;
+        });
+        if (cached) {
+          event.waitUntil(network.catch(() => undefined));
+          return cached;
+        }
+        return network.catch(async () => (await cache.match(OFFLINE_URL)) || Response.error());
+      })(),
+    );
+    return;
+  }
 
   if (request.mode === 'navigate') {
     event.respondWith(
