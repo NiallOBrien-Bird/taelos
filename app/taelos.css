@@ -289,6 +289,17 @@ h1.views { display: flex; align-items: baseline; gap: 16px; margin: 2px 0 0 -4px
 .tl-group.soon .tl-head::before { border-color: color-mix(in srgb, var(--accent) 60%, var(--line-strong)); }
 .tl-head h2 { margin: 0; font: 600 15px/1.2 var(--head); letter-spacing: -0.01em; color: var(--strong); }
 .tl-group.now .tl-head h2 { color: var(--accent); }
+.tl-group.late .tl-head::before { background: var(--rose); border-color: var(--rose); box-shadow: 0 0 0 4px color-mix(in srgb, var(--rose) 18%, transparent); }
+.tl-group.late .tl-head h2 { color: var(--rose); }
+.tl-group.late .tl-head .c { color: var(--rose); }
+.sub .time.late { color: var(--rose); }
+/* Overdue rows keep their way out in view on every device: do it today, or push it back. */
+.late-acts { flex: none; display: flex; align-items: center; gap: 6px; margin-right: -4px; }
+.late-acts .la { display: grid; place-items: center; height: 36px; min-width: 40px; padding: 0 12px; border-radius: 10px; color: var(--text); background: var(--wash); font-size: 13px; font-weight: 500; transition: color 0.12s ease, background-color 0.12s ease; }
+.late-acts .la .i { width: 17px; height: 17px; }
+.late-acts .la:hover { color: var(--strong); background: var(--wash-2); }
+.late-acts .la.push { color: var(--amber); padding: 0 10px; }
+.late-acts .la.push:hover { background: var(--amber-soft); }
 .tl-head p { margin: 0; color: var(--faint); font-size: 12px; }
 .tl-head .c { margin-left: auto; color: var(--faint); font-size: 11.5px; }
 .tl-items { border-radius: 12px; background: var(--surface); border: 1px solid var(--line); overflow: hidden; }
@@ -379,6 +390,7 @@ h1.views { display: flex; align-items: baseline; gap: 16px; margin: 2px 0 0 -4px
   .sub:empty { display: none; }
   .sub .adot { display: none; }
   .acts { display: none !important; }
+  .late-acts .la { height: 40px; min-width: 44px; }
   .step .del { opacity: 1; }
   .open-body { padding-left: 30px; }
   .fab { position: fixed; z-index: 41; right: 18px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); display: grid; place-items: center; width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: #0b1020; box-shadow: var(--shadow); }

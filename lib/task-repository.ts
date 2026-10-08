@@ -51,6 +51,7 @@ export interface Task {
 }
 
 export interface TaskRepository {
+  userId(): Promise<string | null>;
   list(): Promise<Task[]>;
   replace(tasks: Task[]): Promise<void>;
   reset(): Promise<Task[]>;
@@ -215,13 +216,27 @@ export function isTaskArray(value: unknown): value is Task[] {
   return true;
 }
 
+/**
+ * The signed-in user's id, read from the session stored on this device — no
+ * network round trip. Row-level security still checks every query on the server.
+ */
+async function sessionUserId(): Promise<string | null> {
+  const { data } = await createClient().auth.getSession();
+  return data.session?.user.id ?? null;
+}
+
 async function currentUserId(): Promise<string> {
-  const { data, error } = await createClient().auth.getUser();
-  if (error || !data.user) throw error ?? new Error('You must be signed in.');
-  return data.user.id;
+  const id = await sessionUserId();
+  if (!id) throw new Error('You must be signed in.');
+  return id;
 }
 
 export class SupabaseTaskRepository implements TaskRepository {
+  /** The signed-in user's id, or null when signed out. Local only. */
+  async userId(): Promise<string | null> {
+    return sessionUserId();
+  }
+
   async list(): Promise<Task[]> {
     const userId = await currentUserId();
     const supabase = createClient();
